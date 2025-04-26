@@ -1,0 +1,217 @@
+/* login.css */
+
+/* Fondo con franjas de la bandera de Colombia */
+/* Fondo moderno con degradado para tema de control de accidentalidad */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(
+    135deg,
+    #1e3c72,    /* Azul profundo: confianza/autoridad */
+    #2a5298,    /* Azul más claro: tecnología */
+    #f9f9f9     /* Gris casi blanco: neutralidad y limpieza */
+  );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+/* Contenedor principal que organiza los elementos horizontalmente */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Centramos verticalmente */
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px; /* Espacio superior para bajarlo */
+  min-height: 100vh; /* Ocupa todo el alto de la pantalla */
+}
+
+/* Cuadro de bienvenida al lado derecho */
+.welcome-box {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  align-self: center; /* Se asegura que se centre verticalmente */
+}
+
+/* Título dentro del cuadro */
+.welcome-box h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* Texto dentro del cuadro */
+.welcome-box p {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* Efecto al pasar el cursor */
+.welcome-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Estilo del formulario de login */
+.login-box {
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 1.5s ease-out;
+}
+
+/* Estilo del texto vertical */
+.text-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 1.1rem;
+  color: #fff;
+  opacity: 0.8;
+  margin-left: 30px;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Título */
+.titulo {
+  color: #333;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-top: 20px;
+}
+
+/* Subtítulo */
+.subtitulo {
+  color: #777;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+
+/* Logo */
+.logo {
+  width: 80px; /* Establecer un tamaño fijo adecuado */
+  height: auto;
+  margin-top: 20px;
+  object-fit: contain; /* Para asegurarse de que el logo no se distorsione */
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.1); /* Efecto de zoom al pasar el cursor */
+}
+
+/* Estilos para los formularios */
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: #5B6EFC;
+  outline: none;
+  box-shadow: 0 0 8px rgba(91, 110, 252, 0.5);
+}
+
+/* Agregar iconos dentro de los campos */
+input[type="text"]::placeholder,
+input[type="password"]::placeholder {
+  color: #999;
+}
+
+/* Botón de login */
+button {
+  background-color: #5B6EFC;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #4a5ef7;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Animación de los elementos */
+.animate__animated {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+}
+
+.animate__fadeIn {
+  animation-name: fadeIn;
+}
+
+.animate__zoomIn {
+  animation-name: zoomIn;
+}
+
+.animate__delay-1s {
+  animation-delay: 1s;
+}
+
+.animate__delay-2s {
+  animation-delay: 2s;
+}
+
+/* Copyright */
+.copyright {
+  font-size: 0.9rem;
+  color: #333;
+  opacity: 0.7;
+  margin-top: 20px;
+  font-weight: 300;
+}

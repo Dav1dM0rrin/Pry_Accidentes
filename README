@@ -1,0 +1,26 @@
+Pasos para ejecutar el proyecto 
+Copiar y pegar lo siguiente
+
+BACKEND
+###################################################
+1. Abrir una Nueva terminal
+
+2. cd backend
+
+3. cd venv 
+ cd .\Scripts\                                                                                                                                        
+.\activate
+
+4. cd..                                                                                                                                                 
+>> cd..      
+
+5.  uvicorn main:app --reload
+
+##############################################################
+
+FRONTEND
+
+1. cd frontend
+ cd my-admin-panel
+
+ npm run dev

@@ -1,0 +1,174 @@
+/* =======================
+   Estilo global (body)
+======================== */
+body {
+  margin: 0; /* Elimina los márgenes predeterminados del navegador */
+  padding: 0; /* Elimina el padding predeterminado del navegador */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Establece la fuente */
+  background: linear-gradient(135deg, #1e3c72, #2a5298, #f9f9f9); /* Fondo con gradiente de colores */
+  background-repeat: no-repeat; /* No repetir el fondo */
+  background-attachment: fixed; /* Fondo fijo, se mantiene al hacer scroll */
+  min-height: 100vh; /* Garantiza que el fondo cubra al menos la altura de la ventana */
+  display: flex; /* Se utiliza para usar Flexbox y alinear el contenido */
+  flex-direction: column; /* Alineación de los elementos en columna */
+  justify-content: flex-start; /* Alinea el contenido al principio de la página */
+  align-items: center; /* Centra el contenido horizontalmente */
+}
+
+/* =======================
+   Barra superior (top-bar)
+======================== */
+.top-bar {
+  width: 100%; /* La barra ocupa todo el ancho de la página */
+  background-color: #2a5298; /* Color de fondo de la barra */
+  color: white; /* Color del texto */
+  padding: 15px 20px; /* Espaciado interno */
+  position: fixed; /* Fija la barra en la parte superior */
+  top: 0; /* Coloca la barra en la parte superior */
+  left: 0; /* Alineación a la izquierda */
+  z-index: 10; /* Asegura que la barra se superponga a otros elementos */
+  display: flex; /* Usa Flexbox para alinear los elementos dentro de la barra */
+  justify-content: center; /* Centra el contenido horizontalmente */
+  align-items: center; /* Centra el contenido verticalmente */
+  font-size: 1.5rem; /* Tamaño de la fuente */
+  font-weight: bold; /* Hace el texto en negrita */
+}
+
+/* =======================
+   Menú de navegación (navbar)
+======================== */
+/* =======================
+   Barra de navegación (navbar)
+======================== */
+.navbar {
+  display: flex; /* Utiliza Flexbox para alinear los enlaces */
+  justify-content: center; /* Centra los elementos dentro del contenedor */
+  background-color: #1e3c72; /* Fondo del menú */
+  padding: 10px; /* Espaciado interno */
+  position: fixed; /* Fija el menú debajo de la barra superior */
+  top: 60px; /* Coloca el menú justo debajo de la barra superior */
+  width: 100%; /* El menú ocupa todo el ancho de la pantalla */
+  z-index: 9; /* Asegura que el menú esté debajo de la barra superior */
+  text-align: center; /* Centra el texto de los enlaces */
+  left: 50%; /* Centra el contenedor en la pantalla */
+  transform: translateX(-50%); /* Ajusta el contenedor para centrarlo completamente */
+}
+
+/* =======================
+   Enlaces de la barra de navegación (navbar a)
+======================== */
+.navbar a {
+  color: white; /* Color de los enlaces */
+  text-decoration: none; /* Elimina el subrayado de los enlaces */
+  font-size: 1.1rem; /* Tamaño de la fuente de los enlaces */
+  padding: 10px 20px; /* Espaciado interno de los enlaces */
+  margin: 0 10px; /* Márgenes laterales para los enlaces */
+  border-radius: 5px; /* Bordes redondeados para los enlaces */
+  transition: background-color 0.3s ease; /* Efecto de transición suave para el cambio de color de fondo */
+}
+
+.navbar a:hover {
+  background-color: #2a5298; /* Cambia el color de fondo al pasar el ratón sobre los enlaces */
+}
+
+
+/* =======================
+   Contenedor principal (container)
+======================== */
+.container {
+  display: flex; /* Utiliza Flexbox para organizar las dos secciones (mapa y lista) */
+  flex-direction: row; /* Distribuye los elementos en una fila (lado a lado) */
+  width: 90%; /* Ocupa el 90% del ancho de la página */
+  max-width: 1200px; /* Ancho máximo para no hacer el contenedor demasiado grande */
+  height: 100vh; /* La altura es 100% de la ventana */
+  margin-top: 120px; /* Deja espacio para la barra superior y el menú */
+  justify-content: space-between; /* Distribuye las secciones con espacio entre ellas */
+}
+
+/* =======================
+   Estilo del mapa (leaflet-container)
+======================== */
+.leaflet-container {
+  width: 70%; /* El mapa ocupa el % del ancho del contenedor */
+  height: 100%; /* El mapa ocupa toda la altura disponible */
+  border-radius: 15px; /* Bordes redondeados para el mapa */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Sombra atractiva alrededor del mapa */
+  z-index: 1; /* Asegura que el mapa esté debajo de otros elementos si es necesario */
+  border: 3px solid #2a5298; /* Borde de color azul alrededor del mapa */
+}
+
+/* =======================
+   Estilo de la lista de accidentes (accident-list)
+======================== */
+.accident-list {
+  width: 70%; /* La lista de accidentes ocupa el 48% del ancho del contenedor */
+  height: 70%; /* La lista ocupa toda la altura disponible */
+  overflow-y: auto; /* Permite que la lista sea desplazable si es demasiado larga */
+  background-color: #ffffff; /* Fondo blanco para la lista */
+  padding: 20px; /* Espaciado interno */
+  border-radius: 15px; /* Bordes redondeados para la lista */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra alrededor de la lista */
+  border: 3px solid #2a5298; /* Borde azul alrededor de la lista */
+  margin-top: 20px; /* Deja espacio entre el mapa y la lista */
+}
+
+/* =======================
+   Título del mapa (map-title)
+======================== */
+.map-title {
+  text-align: center; /* Centra el texto */
+  margin-top: 80px; /* Deja espacio debajo de la barra superior */
+  font-size: 2rem; /* Tamaño de la fuente */
+  color: #ffffff; /* Color del texto */
+  font-weight: bold; /* Negrita */
+  margin-bottom: 20px; /* Espacio debajo del título */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Sombra sutil en el texto */
+}
+
+/* =======================
+   Copyright
+======================== */
+.copyright {
+  font-size: 0.9rem; /* Tamaño de la fuente */
+  color: #fdf7f7; /* Color del texto */
+  opacity: 0.8; /* Opacidad del texto */
+  margin-top: 30px; /* Espacio superior */
+  text-align: center; /* Centra el texto */
+  font-weight: 300; /* Peso de la fuente */
+}
+
+/* =======================
+   Media Queries para Responsive Design
+======================== */
+
+/* Para pantallas pequeñas, como móviles */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column; /* Cambia la dirección de los elementos a columna */
+    width: 100%; /* Hace que el contenedor ocupe todo el ancho */
+    height: auto; /* Permite que la altura se ajuste automáticamente */
+  }
+
+  .leaflet-container,
+  .accident-list {
+    width: 90%; /* Hace que el mapa y la lista ocupen el 90% del ancho */
+    margin-bottom: 20px; /* Añade margen en la parte inferior para separarlos */
+  }
+
+  .navbar a {
+    font-size: 1rem; /* Reduce el tamaño de la fuente en pantallas pequeñas */
+    padding: 8px 15px; /* Ajusta el padding para que los enlaces no se vean tan grandes */
+  }
+}
+
+/* Para pantallas más pequeñas que 480px (móviles muy pequeños) */
+@media (max-width: 480px) {
+  .navbar a {
+    font-size: 0.9rem; /* Reduce aún más el tamaño de la fuente */
+    padding: 6px 12px; /* Reduce el padding */
+  }
+  
+  .top-bar {
+    font-size: 1.2rem; /* Reduce el tamaño de la fuente de la barra superior */
+  }
+}
