@@ -1,3 +1,14 @@
+|-----------------------------------------------------------------------------------------------|
+Previo a ejecutar el el proyecto se recomienda crear una MV y luego instalar dependencias:
+ - Instalación MV
+python -m venv [nombre de mv]
+
+**Nota: En caso que no te deje activar la MV puedes usar este comando:**
+  Set ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+
+ - Instalación de dependencias
+pip install -r requirements.txt
+|-----------------------------------------------------------------------------------------------|
 Pasos para ejecutar el proyecto 
 Copiar y pegar lo siguiente
 
