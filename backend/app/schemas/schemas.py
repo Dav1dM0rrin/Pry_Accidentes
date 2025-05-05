@@ -71,6 +71,9 @@ class UsuarioCreate(UsuarioBase):
 
 class UsuarioRead(UsuarioBase):
     id: int
+    email: str
+    primer_nombre: str
+    primer_apellido: str
 
     class Config:
         orm_mode = True

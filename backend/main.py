@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 from app.api.routers import auth, accidente # o los routers que hayas creado
 from fastapi.middleware.cors import CORSMiddleware
