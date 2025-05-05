@@ -2,6 +2,8 @@
    Estilos globales y del contenedor
 ============================= */
 .gestion-container {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     max-width: 1200px;
     margin: 20px auto;
@@ -25,6 +27,7 @@ h2 {
     border: none;
     cursor: pointer;
     transition: background-color 0.3s;
+    width: 45%;
 }
 
 .btn:hover {
@@ -32,10 +35,13 @@ h2 {
 }
 
 .editar {
+    margin-left: 8px;
     background-color: #4caf50;
+    margin-bottom: 16px;
 }
 
 .eliminar {
+    margin-left: 10px;
     background-color: #f44336;
 }
 
@@ -76,6 +82,8 @@ h2 {
 }
 
 .user-form input {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     padding: 10px;
     margin: 10px 0;
@@ -84,7 +92,16 @@ h2 {
 }
 
 .user-form button {
-    width: 100%;
+    width: 50%;
+    justify-content: space-between;
     padding: 10px;
     margin: 5px 0;
+}
+
+ .button-container { /* Centrar botones */
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Espaciado entre botones */
+    margin-top: 10px;
+    margin-bottom: 10px;
 }

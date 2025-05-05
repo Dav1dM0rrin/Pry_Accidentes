@@ -83,12 +83,7 @@ const GestionUsuarios = () => {
     return (
         <div className="gestion-container">
             <h2>Gestión de Usuarios</h2>
-
-            {/* Botón para agregar un nuevo usuario */}
-            <button onClick={() => mostrarFormulario()} className="btn">
-                Agregar Usuario
-            </button>
-
+            
             {/* Tabla de usuarios */}
             <table className="user-table">
                 <thead>
@@ -118,6 +113,13 @@ const GestionUsuarios = () => {
                 </tbody>
             </table>
 
+            {/* Botón para agregar un nuevo usuario */}
+            <div className="button-container">
+                <button onClick={() => mostrarFormulario()} className="btn">
+                    Agregar Usuario
+                </button>
+            </div>
+
             {/* Formulario para agregar o editar usuarios */}
             {isFormVisible && (
                 <div className="user-form">
@@ -144,12 +146,16 @@ const GestionUsuarios = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
-                        <button type="submit" className="btn">
-                            {userIdToEdit ? "Guardar Cambios" : "Agregar Usuario"}
-                        </button>
-                        <button type="button" onClick={ocultarFormulario} className="btn cancelar">
-                            Cancelar
-                        </button>
+                        <div className="button-container">
+                            <button type="submit" className="btn">
+                                {userIdToEdit ? "Guardar Cambios" : "Agregar Usuario"}
+                            </button>
+                            <button type="button" onClick={ocultarFormulario} className="btn cancelar">
+                                Cancelar
+                            </button>
+
+                        </div>
+
                     </form>
                 </div>
             )}
