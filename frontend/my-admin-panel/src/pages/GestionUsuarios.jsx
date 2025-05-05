@@ -1,44 +1,53 @@
+import axios from "axios";
+import "../styles/gestion_usuarios.css";
 import React, { useState, useEffect } from "react";
 
 const GestionUsuarios = () => {
+    // Se separan los estados para primer nombre y primer apellido
     const [usuarios, setUsuarios] = useState([]);
-    const [nombre, setNombre] = useState("");
+    const [primerNombre, setPrimerNombre] = useState("");
+    const [primerApellido, setPrimerApellido] = useState("");
     const [email, setEmail] = useState("");
     const [isFormVisible, setFormVisible] = useState(false);
     const [userIdToEdit, setUserIdToEdit] = useState(null);
 
-    // Simulamos una base de datos con un array
     useEffect(() => {
-        // Aquí puedes hacer una solicitud a la API para cargar los usuarios
-        setUsuarios([
-            { id: 1, nombre: "Juan Pérez", email: "juan@example.com" },
-            { id: 2, nombre: "Ana López", email: "ana@example.com" },
-        ]);
+        axios.get("http://127.0.0.1:8000/usuarios/")
+            .then((response) => {
+                // Se asume que response.data es un array de objetos con: { id, primer_nombre, primer_apellido, email }
+                setUsuarios(response.data);
+                console.log("Usuarios registrados:", response.data);
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error);
+            });
     }, []);
 
-    // Función para mostrar el formulario de agregar/editar
+    // Mostrar el formulario de agregar/editar
     const mostrarFormulario = (id = null) => {
         if (id) {
-            const usuario = usuarios.find((user) => user.id === id);
+            const usuario = usuarios.find((u) => u.id === id);
             if (usuario) {
-                setNombre(usuario.nombre);
+                setPrimerNombre(usuario.primer_nombre);
+                setPrimerApellido(usuario.primer_apellido);
                 setEmail(usuario.email);
                 setUserIdToEdit(id);
             }
         } else {
-            setNombre("");
+            setPrimerNombre("");
+            setPrimerApellido("");
             setEmail("");
             setUserIdToEdit(null);
         }
         setFormVisible(true);
     };
 
-    // Función para ocultar el formulario
+    // Ocultar el formulario
     const ocultarFormulario = () => {
         setFormVisible(false);
     };
 
-    // Función para manejar el formulario
+    // Manejo del formulario para agregar o editar
     const manejarFormulario = (e) => {
         e.preventDefault();
         if (userIdToEdit) {
@@ -46,7 +55,7 @@ const GestionUsuarios = () => {
             setUsuarios(
                 usuarios.map((usuario) =>
                     usuario.id === userIdToEdit
-                        ? { ...usuario, nombre, email }
+                        ? { ...usuario, primer_nombre: primerNombre, primer_apellido: primerApellido, email }
                         : usuario
                 )
             );
@@ -54,7 +63,8 @@ const GestionUsuarios = () => {
             // Agregar usuario
             const nuevoUsuario = {
                 id: usuarios.length + 1,
-                nombre,
+                primer_nombre: primerNombre,
+                primer_apellido: primerApellido,
                 email,
             };
             setUsuarios([...usuarios, nuevoUsuario]);
@@ -71,7 +81,7 @@ const GestionUsuarios = () => {
     };
 
     return (
-        <div className="container">
+        <div className="gestion-container">
             <h2>Gestión de Usuarios</h2>
 
             {/* Botón para agregar un nuevo usuario */}
@@ -84,7 +94,7 @@ const GestionUsuarios = () => {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nombre</th>
+                        <th>Nombre Completo</th>
                         <th>Email</th>
                         <th>Acciones</th>
                     </tr>
@@ -93,19 +103,13 @@ const GestionUsuarios = () => {
                     {usuarios.map((usuario) => (
                         <tr key={usuario.id}>
                             <td>{usuario.id}</td>
-                            <td>{usuario.nombre}</td>
+                            <td>{usuario.primer_nombre + " " + usuario.primer_apellido}</td>
                             <td>{usuario.email}</td>
                             <td>
-                                <button
-                                    onClick={() => mostrarFormulario(usuario.id)}
-                                    className="btn editar"
-                                >
+                                <button onClick={() => mostrarFormulario(usuario.id)} className="btn editar">
                                     Editar
                                 </button>
-                                <button
-                                    onClick={() => eliminarUsuario(usuario.id)}
-                                    className="btn eliminar"
-                                >
+                                <button onClick={() => eliminarUsuario(usuario.id)} className="btn eliminar">
                                     Eliminar
                                 </button>
                             </td>
@@ -121,13 +125,20 @@ const GestionUsuarios = () => {
                     <form onSubmit={manejarFormulario}>
                         <input
                             type="text"
-                            placeholder="Nombre"
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
+                            placeholder="Primer Nombre"
+                            value={primerNombre}
+                            onChange={(e) => setPrimerNombre(e.target.value)}
                             required
                         />
                         <input
-                            type="email"
+                            type="text"
+                            placeholder="Primer Apellido"
+                            value={primerApellido}
+                            onChange={(e) => setPrimerApellido(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="text"
                             placeholder="Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}

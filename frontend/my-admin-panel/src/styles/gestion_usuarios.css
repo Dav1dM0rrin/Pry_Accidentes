@@ -1,8 +1,8 @@
 /* ============================
    Estilos globales y del contenedor
 ============================= */
-.container {
-    width: 80%;
+.gestion-container {
+    width: 100%;
     max-width: 1200px;
     margin: 20px auto;
     padding: 20px;
@@ -88,4 +88,3 @@ h2 {
     padding: 10px;
     margin: 5px 0;
 }
-

@@ -24,7 +24,7 @@ const Login = () => {
 
           <LoginForm />
 
-          <p className="copyright text-center text-white mt-6 animate__animated animate__fadeIn animate__delay-2s">
+          <p className="copy text-center text-gray-100 mt-6 animate__animated animate__fadeIn animate__delay-2s">
             © {new Date().getFullYear()} Alcaldía de Barranquilla. Todos los derechos reservados.
           </p>
         </div>

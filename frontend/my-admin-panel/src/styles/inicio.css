@@ -78,9 +78,9 @@ body {
 .container {
   display: flex; /* Utiliza Flexbox para organizar las dos secciones (mapa y lista) */
   flex-direction: row; /* Distribuye los elementos en una fila (lado a lado) */
-  width: 90%; /* Ocupa el 90% del ancho de la página */
+  width: 100%; /* Ocupa el 100% del ancho de la página */
   max-width: 1200px; /* Ancho máximo para no hacer el contenedor demasiado grande */
-  height: 100vh; /* La altura es 100% de la ventana */
+  min-height: 90vh; /* La altura es 100% de la ventana */
   margin-top: 120px; /* Deja espacio para la barra superior y el menú */
   justify-content: space-between; /* Distribuye las secciones con espacio entre ellas */
 }
@@ -93,6 +93,7 @@ body {
   height: 100%; /* El mapa ocupa toda la altura disponible */
   border-radius: 15px; /* Bordes redondeados para el mapa */
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Sombra atractiva alrededor del mapa */
+  margin-top: 20px; /* Deja espacio entre la barra superior y el mapa */
   z-index: 1; /* Asegura que el mapa esté debajo de otros elementos si es necesario */
   border: 3px solid #2a5298; /* Borde de color azul alrededor del mapa */
 }
@@ -101,8 +102,9 @@ body {
    Estilo de la lista de accidentes (accident-list)
 ======================== */
 .accident-list {
-  width: 70%; /* La lista de accidentes ocupa el 48% del ancho del contenedor */
-  height: 70%; /* La lista ocupa toda la altura disponible */
+  position: relative; /* Cambia a relative para que se ajuste dentro del contenedor */
+  width: 80%; /* Ajusta el ancho para que no ocupe demasiado espacio */
+  height: 65%; /* La lista ocupa la mitad de la altura disponible */
   overflow-y: auto; /* Permite que la lista sea desplazable si es demasiado larga */
   background-color: #ffffff; /* Fondo blanco para la lista */
   padding: 20px; /* Espaciado interno */
@@ -110,6 +112,8 @@ body {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra alrededor de la lista */
   border: 3px solid #2a5298; /* Borde azul alrededor de la lista */
   margin-top: 20px; /* Deja espacio entre el mapa y la lista */
+  margin-left: 50px; /* Centra horizontalmente */
+  margin-right: auto; /* Centra horizontalmente */
 }
 
 /* =======================
@@ -117,7 +121,7 @@ body {
 ======================== */
 .map-title {
   text-align: center; /* Centra el texto */
-  margin-top: 80px; /* Deja espacio debajo de la barra superior */
+  margin-top: 40px; /* Deja espacio debajo de la barra superior */
   font-size: 2rem; /* Tamaño de la fuente */
   color: #ffffff; /* Color del texto */
   font-weight: bold; /* Negrita */
@@ -125,6 +129,15 @@ body {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Sombra sutil en el texto */
 }
 
+.last-accidents-title {
+  text-align: center; /* Centra el texto */
+  margin-block: 9%; /* Elimina el margen superior e inferior */
+  font-size: 2rem; /* Tamaño de la fuente */
+  color: #ffffff; /* Color del texto */
+  font-weight: bold; /* Negrita */
+  margin-bottom: 20px; /* Espacio debajo del título */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Sombra sutil en el texto */
+}
 /* =======================
    Copyright
 ======================== */
@@ -135,6 +148,7 @@ body {
   margin-top: 30px; /* Espacio superior */
   text-align: center; /* Centra el texto */
   font-weight: 300; /* Peso de la fuente */
+  margin-left: 10%; /* Centra horizontalmente */
 }
 
 /* =======================
@@ -153,6 +167,13 @@ body {
   .accident-list {
     width: 90%; /* Hace que el mapa y la lista ocupen el 90% del ancho */
     margin-bottom: 20px; /* Añade margen en la parte inferior para separarlos */
+  }
+
+  .accident-list,
+  .copyright {
+    height: 300px; /* Establece una altura fija para la lista de accidentes */
+    margin-left: 0; /* Elimina el margen izquierdo */
+    margin-right: 0; /* Elimina el margen derecho */
   }
 
   .navbar a {
