@@ -15,10 +15,8 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 # --- Configuración del LLM ---
 # Reemplaza estas variables según el proveedor de LLM que uses (OpenAI, Google, DeepSeek, etc.)
 LLM_API_KEY = os.getenv("LLM_API_KEY")
-# URL del endpoint de chat completions. Ejemplo para OpenAI: "https://api.openai.com/v1/chat/completions"
-# Ejemplo para DeepSeek: "https://api.deepseek.com/chat/completions"
 LLM_API_URL = os.getenv("LLM_API_URL")
-LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-3.5-turbo") # O "deepseek-coder", "gemini-pro", etc.
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "deepseek-chat") # O "deepseek-coder"
 
 
 # --- Validar configuraciones necesarias ---
