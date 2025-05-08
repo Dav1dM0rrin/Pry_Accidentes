@@ -18,14 +18,10 @@ BACKEND
 
 2. cd backend
 
-3. cd venv 
- cd .\Scripts\                                                                                                                                        
-.\activate
+3. .\venv\Scripts\activate
 
-4. cd..                                                                                                                                                 
->> cd..      
 
-5.  uvicorn main:app --reload
+4.  uvicorn main:app --reload
 
 ##############################################################
 
@@ -35,3 +31,12 @@ FRONTEND
  cd my-admin-panel
 
  npm run dev
+
+
+##############################################################
+
+EJECUTAR CHATBOT
+
+Abrir nueva terminal y ejecutar el siguiente comando
+
+python -m chatbot.bot
