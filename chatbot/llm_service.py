@@ -12,7 +12,6 @@ try:
 except ImportError:
     # Manejar el caso si el archivo config no existe o no se puede importar,
     # por ejemplo, si este archivo se ejecuta directamente o la estructura de importación cambia.
-    # En un proyecto bien estructurado, esta excepción probablemente no debería ocurrir
     # si se ejecuta desde el punto de entrada principal.
     logging.error("No se pudo importar la configuración del LLM desde .config. Asegúrate de que 'config.py' existe y está en la ruta de importación correcta.")
     LLM_API_KEY = None
@@ -91,28 +90,12 @@ def get_intent_and_parameters(user_message: str) -> dict:
 
         llm_response = response.json() # Convierte la respuesta JSON de la API a un diccionario/lista Python
 
-        # --- COMIENZO: SECCIÓN CRÍTICA QUE DEBES AJUSTAR SEGÚN LA ESTRUCTURA DE LA RESPUESTA DE TU LLM ---
-        # ¡ESTO ES LO MÁS IMPORTANTE! Consulta la DOCUMENTACIÓN ESPECÍFICA de tu proveedor de LLM
-        # (OpenAI, Google AI Gemini, Anthropic Claude, etc.) para saber cómo extraer el texto generado.
-
-        # Ejemplo típico para APIs compatibles con OpenAI (OpenAI, DeepSeek, algunos proxies/interfaces de Gemini):
-        # Se espera una estructura como {'choices': [{'message': {'content': '...'}}]}
-        # Esta línea intenta extraer 'content' de forma segura, devolviendo '' si no lo encuentra.
         content = llm_response.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
 
-        # # Ejemplo si la respuesta de tu LLM fuera un simple campo 'text' en el nivel superior:
-        # # content = llm_response.get('text', '').strip()
-
-        # # Ejemplo para la API nativa de Google AI (Gemini) si no usas un proxy compatible:
-        # # Se espera una estructura como {'candidates': [{'content': {'parts': [{'text': '...'}]}}]}
-        # # content = llm_response.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '').strip()
-
-        # --- FIN: SECCIÓN QUE PUEDE REQUERIR AJUSTE ---
 
         logger.debug(f"Respuesta cruda del LLM (content): {content}") # Usamos debug para no saturar logs con contenido largo
 
         # Intenta extraer y parsear el JSON del contenido recibido del LLM
-        # A veces el LLM puede incluir el JSON dentro de un bloque de código markdown (```json ... ```)
         # Intentamos limpiar eso antes de parsear para ser más tolerantes.
         clean_content = content
         if content.startswith('```json'):
