@@ -18,10 +18,9 @@ BACKEND
 
 2. cd backend
 
-3. .\venv\Scripts\activate
+ .\venv\Scripts\activate
 
-
-4.  uvicorn main:app --reload
+  uvicorn main:app --reload
 
 ##############################################################
 

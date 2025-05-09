@@ -1,3 +1,4 @@
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.schemas import schemas
 from app.models import modelos
@@ -139,4 +140,14 @@ def eliminar_accidente(db: Session, accidente_id: int):
         db.commit()
     return accidente
 
+def obtener_accidentes_barrio(db: Session, barrio_id: Optional[int] = None) -> List[modelos.Accidente]:
+    query = db.query(modelos.Accidente)
 
+    if barrio_id is not None:
+        # Unir con Ubicacion y filtrar por barrio_id
+        query = query.join(modelos.Ubicacion).filter(modelos.Ubicacion.barrio_id == barrio_id)
+
+    # Añadimos el límite de 20 resultados a la consulta
+    query = query.limit(20)
+
+    return query.all()

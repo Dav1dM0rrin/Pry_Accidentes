@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas import  schemas
@@ -76,7 +76,7 @@ def listar_gravedades(db: Session = Depends(get_db)):
 def crear_barrio(barrio: schemas.BarrioBase, db: Session = Depends(get_db)):
     return accidente.crear_barrio(db, barrio)
 
-@router.get("/barrios/", response_model=list[schemas.BarrioBase])
+@router.get("/barrios/", response_model=list[schemas.BarrioRead]) # Cambiado a BarrioRead
 def listar_barrios(db: Session = Depends(get_db)):
     return accidente.obtener_barrios(db)
 
@@ -127,35 +127,62 @@ def eliminar_accidente(accidente_id: int, db: Session = Depends(get_db)):
 
 ##------ MAPA ----------###
 
-
 @router.get("/api/accidentes/mapa", response_model=List[dict])
-def obtener_accidentes_mapa(db: Session = Depends(database.get_db)):
-    accidentes = db.query(modelos.Accidente).all()
+def obtener_accidentes_mapa(
+    barrio_id: Optional[int] = Query(None, description="Filtrar por ID de barrio"),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtiene los datos de accidentes para mostrar en el mapa.
+    Opcionalmente filtra por barrio.
+    """
+    # **LLAMADA A LA NUEVA FUNCIÓN RENOMBRADA**
+    accidentes = accidente.obtener_accidentes_barrio(db=db, barrio_id=barrio_id)
+
     resultados = []
 
     for acc in accidentes:
         ubicacion = acc.ubicacion
         tipo_accidente = acc.tipo_accidente.nombre if acc.tipo_accidente else "Sin tipo"
 
-        # Validamos lat/lon
         if ubicacion and ubicacion.latitud and ubicacion.longitud:
-            # Validar las vías y evitamos "None" en la descripción
-            primer_via = ubicacion.primer_via.nombre_via if ubicacion.primer_via and ubicacion.primer_via.nombre_via else ""
-            segunda_via = ubicacion.segunda_via.nombre_via if ubicacion.segunda_via and ubicacion.segunda_via.nombre_via else ""
-            direccion = f"{primer_via} con {segunda_via}".strip()
-            # Evitar que se muestre "con" si ambas vías son vacías
+            primer_via_nombre = ubicacion.primer_via.nombre_via if ubicacion.primer_via and ubicacion.primer_via.nombre_via else ""
+            segunda_via_nombre = ubicacion.segunda_via.nombre_via if ubicacion.segunda_via and ubicacion.segunda_via.nombre_via else ""
+
+            direccion_partes = []
+            if primer_via_nombre:
+                direccion_partes.append(primer_via_nombre)
+            if segunda_via_nombre:
+                direccion_partes.append(f"con {segunda_via_nombre}")
+
+            direccion = " ".join(direccion_partes).strip()
             if not direccion:
                 direccion = "Dirección no definida"
 
-            barrio = ubicacion.barrio.nombre if ubicacion.barrio else "Sin barrio"
+            barrio_nombre = ubicacion.barrio.nombre if ubicacion.barrio else "Sin barrio"
             complemento = ubicacion.complemento or "Sin complemento"
-            descripcion = f"{tipo_accidente} - {direccion} ({barrio}) {complemento}".strip()
 
-            resultados.append({
-                "id": acc.id,
-                "lat": float(ubicacion.latitud),
-                "lng": float(ubicacion.longitud),
-                "descripcion": descripcion
-            })
+            descripcion_parts = [tipo_accidente]
+            if direccion != "Dirección no definida":
+                 descripcion_parts.append(direccion)
+            if barrio_nombre != "Sin barrio":
+                 descripcion_parts.append(f"({barrio_nombre})")
+            if complemento != "Sin complemento":
+                 descripcion_parts.append(complemento)
+
+            descripcion = " - ".join(descripcion_parts)
+
+            try:
+                lat = float(ubicacion.latitud)
+                lng = float(ubicacion.longitud)
+                resultados.append({
+                    "id": acc.id,
+                    "lat": lat,
+                    "lng": lng,
+                    "descripcion": descripcion
+                })
+            except (ValueError, TypeError):
+                print(f"Error al procesar lat/lng para accidente {acc.id}: {ubicacion.latitud}, {ubicacion.longitud}")
+                pass # Ignorar accidentes con lat/lng inválidos
 
     return resultados

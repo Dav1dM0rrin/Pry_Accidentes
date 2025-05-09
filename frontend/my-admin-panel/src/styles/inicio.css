@@ -152,6 +152,50 @@ body {
 }
 
 /* =======================
+   Estilos para el filtro de barrio (NUEVOS)
+======================== */
+
+/* Contenedor del filtro */
+.filter-container {
+  display: flex; /* Usa flexbox para alinear label y select */
+  align-items: center; /* Alinea verticalmente al centro */
+  gap: 10px; /* Espacio entre label y select */
+  margin-top: 20px; /* Espacio encima del filtro */
+  margin-bottom: 20px; /* Espacio debajo del filtro */
+  padding: 10px 20px; /* Relleno interno */
+  background-color: #ffffff; /* Fondo blanco para el filtro */
+  border-radius: 8px; /* Bordes redondeados */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  width: fit-content; /* Ajusta el ancho al contenido */
+  margin-left: auto; /* Centra el contenedor */
+  margin-right: auto; /* Centra el contenedor */
+}
+
+/* Estilo para la etiqueta del filtro */
+.filter-container label {
+    font-size: 1.1rem; /* Tamaño de fuente */
+    color: #333; /* Color del texto */
+    font-weight: bold; /* Negrita */
+}
+
+/* Estilo para el selector (dropdown) */
+.filter-container select {
+    padding: 8px 12px; /* Relleno */
+    font-size: 1rem; /* Tamaño de fuente */
+    border: 1px solid #ccc; /* Borde */
+    border-radius: 4px; /* Bordes redondeados */
+    cursor: pointer; /* Puntero al pasar el ratón */
+    background-color: #f9f9f9; /* Fondo suave */
+    transition: border-color 0.3s ease; /* Transición suave al enfocar */
+}
+
+.filter-container select:focus {
+    border-color: #2a5298; /* Cambio de borde al enfocar */
+    outline: none; /* Elimina el outline por defecto */
+}
+
+
+/* =======================
    Media Queries para Responsive Design
 ======================== */
 
@@ -180,6 +224,21 @@ body {
     font-size: 1rem; /* Reduce el tamaño de la fuente en pantallas pequeñas */
     padding: 8px 15px; /* Ajusta el padding para que los enlaces no se vean tan grandes */
   }
+
+  /* Ajuste para el filtro en pantallas pequeñas */
+  .filter-container {
+    flex-direction: column; /* Apila los elementos del filtro en pantallas pequeñas */
+    width: 90%; /* Ocupa más ancho */
+    padding: 15px; /* Ajusta el padding */
+  }
+
+   .filter-container label,
+   .filter-container select {
+       width: 100%; /* Hace que label y select ocupen todo el ancho disponible */
+       text-align: center; /* Centra el texto */
+   }
+
+
 }
 
 /* Para pantallas más pequeñas que 480px (móviles muy pequeños) */
@@ -188,8 +247,13 @@ body {
     font-size: 0.9rem; /* Reduce aún más el tamaño de la fuente */
     padding: 6px 12px; /* Reduce el padding */
   }
-  
+
   .top-bar {
     font-size: 1.2rem; /* Reduce el tamaño de la fuente de la barra superior */
+  }
+
+  /* Asegura que el filtro se vea bien en pantallas muy pequeñas */
+  .filter-container {
+    padding: 10px;
   }
 }

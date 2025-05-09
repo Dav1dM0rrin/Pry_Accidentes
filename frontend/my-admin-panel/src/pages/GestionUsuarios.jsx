@@ -1,6 +1,7 @@
 import axios from "axios";
 import "../styles/gestion_usuarios.css";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Importa useNavigate
 
 const GestionUsuarios = () => {
     // Se separan los estados para primer nombre y primer apellido
@@ -10,6 +11,8 @@ const GestionUsuarios = () => {
     const [email, setEmail] = useState("");
     const [isFormVisible, setFormVisible] = useState(false);
     const [userIdToEdit, setUserIdToEdit] = useState(null);
+
+    const navigate = useNavigate(); // Inicializa useNavigate
 
     useEffect(() => {
         axios.get("http://127.0.0.1:8000/usuarios/")
@@ -80,10 +83,15 @@ const GestionUsuarios = () => {
         }
     };
 
+    // Función para navegar a la página de inicio
+    const irAInicio = () => {
+        navigate("/inicio");
+    };
+
     return (
         <div className="gestion-container">
             <h2>Gestión de Usuarios</h2>
-            
+
             {/* Tabla de usuarios */}
             <table className="user-table">
                 <thead>
@@ -159,6 +167,13 @@ const GestionUsuarios = () => {
                     </form>
                 </div>
             )}
+
+            {/* Nuevo botón para regresar a la página principal */}
+            <div className="button-container">
+                <button onClick={irAInicio} className="btn">
+                    Regresar a Inicio
+                </button>
+            </div>
         </div>
     );
 };

@@ -53,6 +53,14 @@ class BarrioBase(BaseModel):
     nombre: str
     zona_id: int
 
+    #
+class BarrioRead(BarrioBase):
+    id: int 
+
+    class Config:
+        from_attributes = True # Para compatibilidad con SQLAlchemy (Pydantic v2)
+        # o si usas Pydantic v1: orm_mode = True
+
 class ViaBase(BaseModel):
     numero_via: Optional[str] = None
     nombre_via:Optional[str] = None
