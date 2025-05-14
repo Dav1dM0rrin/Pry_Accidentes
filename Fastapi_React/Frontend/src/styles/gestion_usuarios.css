@@ -1,0 +1,107 @@
+/* ============================
+   Estilos globales y del contenedor
+============================= */
+.gestion-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #333;
+    text-align: center;
+}
+
+/* Botones */
+.btn {
+    background-color: #2a5298;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 45%;
+}
+
+.btn:hover {
+    background-color: #1e3c72;
+}
+
+.editar {
+    margin-left: 8px;
+    background-color: #4caf50;
+    margin-bottom: 16px;
+}
+
+.eliminar {
+    margin-left: 10px;
+    background-color: #f44336;
+}
+
+.cancelar {
+    background-color: #ccc;
+}
+
+/* Tabla de usuarios */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.user-table th,
+.user-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.user-table th {
+    background-color: #2a5298;
+    color: white;
+}
+
+.user-table td {
+    background-color: #f9f9f9;
+}
+
+/* Formulario */
+.user-form {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.user-form input {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.user-form button {
+    width: 50%;
+    justify-content: space-between;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+ .button-container { /* Centrar botones */
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Espaciado entre botones */
+    margin-top: 10px;
+    margin-bottom: 10px;
+}

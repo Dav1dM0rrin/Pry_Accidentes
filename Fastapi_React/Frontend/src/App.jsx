@@ -1,11 +1,8 @@
-// src/App.jsx
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Inicio from "./pages/Inicio";
 import GestionUsuarios from "./pages/GestionUsuarios";
 import TableroAccidentes from "./pages/TableroAccidentes";
-import ReportarAccidente from "./pages/ReportarAccidente"; // <-- 1. Importar el nuevo componente
-import DetalleAccidente from "./pages/DetalleAccidente";
 
 function App() {
   return (
@@ -14,8 +11,6 @@ function App() {
       <Route path="/inicio" element={<Inicio />} />
       <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
       <Route path="/tablero-accidentes" element={<TableroAccidentes />} /> 
-      <Route path="/accidente/:accidenteId" element={<DetalleAccidente />} /> 
-      <Route path="/reportar-accidente" element={<ReportarAccidente />} /> 
     </Routes>
   );
 }

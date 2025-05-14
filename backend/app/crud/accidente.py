@@ -1,8 +1,11 @@
+# Fastapi_React/Backend/app/crud/accidente.py
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func 
 from app.schemas import schemas
 from app.models import modelos
-from app.crud import auth
+from app.crud import auth # Asegúrate que auth.py esté en la misma carpeta (crud) o ajusta la importación
+from datetime import date
 
 # --- ZONA ---
 def crear_zona(db: Session, zona: schemas.ZonaBase):
@@ -54,6 +57,9 @@ def obtener_condiciones_victima(db: Session):
 
 # --- UBICACION ---
 def crear_ubicacion(db: Session, ubic: schemas.UbicacionBase):
+    # Aquí podrías necesitar convertir latitud/longitud si vienen como string y el modelo espera float
+    # o viceversa, dependiendo de cómo lo manejes finalmente.
+    # Por ahora, asume que el schema UbicacionBase ya tiene los tipos correctos para el modelo.
     db_ubic = modelos.Ubicacion(**ubic.dict())
     db.add(db_ubic)
     db.commit()
@@ -101,14 +107,15 @@ def obtener_vias(db: Session):
 
 
 # --- USUARIO ---
+# Estas funciones están aquí y no se han borrado.
 def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
-    hashed_pwd = auth.hash_password(usuario.password)
+    hashed_pwd = auth.hash_password(usuario.password) # Usar la función de hash de auth.py
     db_usuario = modelos.Usuario(
         username=usuario.username,
         email=usuario.email,
         primer_nombre=usuario.primer_nombre,
         primer_apellido=usuario.primer_apellido,
-        password=hashed_pwd  # Contraseña hasheada
+        password=hashed_pwd  # Guardar la contraseña hasheada
     )
     db.add(db_usuario)
     db.commit()
@@ -120,34 +127,71 @@ def obtener_usuarios(db: Session):
 
 
 # --- ACCIDENTE ---
-def crear_accidente(db: Session, accidente: schemas.AccidenteCreate):
-    db_accidente = modelos.Accidente(**accidente.dict())
+def crear_accidente(db: Session, accidente_data: schemas.AccidenteCreateInput, usuario_id: int):
+    db_accidente_data = accidente_data.dict()
+    db_accidente_data['usuario_id'] = usuario_id
+    db_accidente = modelos.Accidente(**db_accidente_data)
     db.add(db_accidente)
     db.commit()
     db.refresh(db_accidente)
     return db_accidente
 
-def obtener_accidentes(db: Session):
-    return db.query(modelos.Accidente).all()
+def obtener_accidentes(db: Session): # Para listado general, puede no necesitar todas las relaciones
+    return db.query(modelos.Accidente).order_by(modelos.Accidente.fecha.desc()).all()
 
-def obtener_accidente(db: Session, accidente_id: int):
-    return db.query(modelos.Accidente).filter(modelos.Accidente.id == accidente_id).first()
+def obtener_accidente(db: Session, accidente_id: int) -> Optional[modelos.Accidente]:
+    """
+    Obtiene un accidente específico por su ID, cargando todas sus relaciones
+    para una vista detallada.
+    """
+    return db.query(modelos.Accidente).options(
+        joinedload(modelos.Accidente.usuario),
+        joinedload(modelos.Accidente.tipo_accidente),
+        joinedload(modelos.Accidente.condicion_victima),
+        joinedload(modelos.Accidente.gravedad), 
+        joinedload(modelos.Accidente.ubicacion).joinedload(modelos.Ubicacion.barrio).joinedload(modelos.Barrio.zona),
+        joinedload(modelos.Accidente.ubicacion).joinedload(modelos.Ubicacion.primer_via).joinedload(modelos.Via.tipo_via),
+        joinedload(modelos.Accidente.ubicacion).joinedload(modelos.Ubicacion.segunda_via).joinedload(modelos.Via.tipo_via)
+    ).filter(modelos.Accidente.id == accidente_id).first()
 
 def eliminar_accidente(db: Session, accidente_id: int):
-    accidente = obtener_accidente(db, accidente_id)
-    if accidente:
-        db.delete(accidente)
+    accidente_obj = obtener_accidente(db, accidente_id) 
+    if accidente_obj:
+        db.delete(accidente_obj)
         db.commit()
-    return accidente
+    return accidente_obj
 
-def obtener_accidentes_barrio(db: Session, barrio_id: Optional[int] = None) -> List[modelos.Accidente]:
-    query = db.query(modelos.Accidente)
+def obtener_accidentes_filtrados_mapa(
+    db: Session,
+    barrio_id: Optional[int] = None,
+    fecha_desde: Optional[date] = None,
+    fecha_hasta: Optional[date] = None,
+    tipo_accidente_id: Optional[int] = None,
+    gravedad_id: Optional[int] = None,
+    limit: int = 100 
+) -> List[modelos.Accidente]:
+
+    query = db.query(modelos.Accidente).options(
+        joinedload(modelos.Accidente.ubicacion).joinedload(modelos.Ubicacion.barrio),
+        joinedload(modelos.Accidente.ubicacion).joinedload(modelos.Ubicacion.primer_via),
+        joinedload(modelos.Accidente.ubicacion).joinedload(modelos.Ubicacion.segunda_via),
+        joinedload(modelos.Accidente.tipo_accidente),
+        joinedload(modelos.Accidente.gravedad) 
+    )
 
     if barrio_id is not None:
-        # Unir con Ubicacion y filtrar por barrio_id
-        query = query.join(modelos.Ubicacion).filter(modelos.Ubicacion.barrio_id == barrio_id)
+        # Asegúrate de que el join sea correcto si Accidente.ubicacion_id es la FK a Ubicacion.id
+        query = query.join(modelos.Ubicacion, modelos.Accidente.ubicacion_id == modelos.Ubicacion.id)\
+                     .filter(modelos.Ubicacion.barrio_id == barrio_id)
+    if fecha_desde is not None:
+        query = query.filter(modelos.Accidente.fecha >= fecha_desde)
+    if fecha_hasta is not None:
+        query = query.filter(modelos.Accidente.fecha <= fecha_hasta)
+    if tipo_accidente_id is not None:
+        query = query.filter(modelos.Accidente.tipo_accidente_id == tipo_accidente_id)
+    if gravedad_id is not None:
+        query = query.filter(modelos.Accidente.gravedad_victima_id == gravedad_id)
 
-    # Añadimos el límite de 20 resultados a la consulta
-    query = query.limit(20)
-
+    query = query.order_by(modelos.Accidente.fecha.desc(), modelos.Accidente.id.desc())
+    query = query.limit(limit)
     return query.all()
