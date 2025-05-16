@@ -118,9 +118,10 @@
 }
 
 .btn-edit {
+  margin-top: 0.2rem; /* Espacio entre botones de acción */
   background-color: var(--warning-color);
   border-color: var(--warning-color);
-  color: var(--text-color-dark);
+  color: var(--text-color-dark) !important;
 }
 .btn-edit:hover {
   background-color: #e0a800;
@@ -128,9 +129,10 @@
 }
 
 .btn-delete {
+  margin-top: 0.2rem; /* Espacio entre botones de acción */
   background-color: var(--danger-color);
   border-color: var(--danger-color);
-  color: var(--text-color-light);
+  color: var(--text-color-dark) !important;
 }
 .btn-delete:hover {
   background-color: #c82333;

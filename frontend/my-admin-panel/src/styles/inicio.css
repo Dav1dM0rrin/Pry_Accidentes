@@ -8,7 +8,7 @@
   --danger-color-dark: #c82333;
   --warning-color: #ffc107;
   --light-gray-bg: #f8f9fa; 
-  --text-color-dark: #212529; 
+  --text-color-dark: #121416; 
   --text-color-light: #ffffff;
   --text-color-muted: #6c757d; 
   --border-color: #dee2e6;
@@ -72,6 +72,7 @@ body {
 }
 
 .btn-logout {
+  margin-top: 0;
   background-color: var(--danger-color);
   border-color: var(--danger-color);
   color: var(--text-color-light);
@@ -348,7 +349,7 @@ body {
   margin-top: 8px; 
   padding: 6px 10px; /* Ligeramente más grande */
   background-color: var(--primary-color);
-  color: var(--text-color-light);
+  color: var(--text-color-dark) !important;
   text-decoration: none;
   border-radius: 4px;
   font-size: 0.85rem;

@@ -53,7 +53,9 @@
 
 .btn-back-detalle { /* Estilo específico para el botón de volver en esta página */
   padding: 0.5rem 1rem;
+  margin-left: 1rem;
   font-size: 0.9rem;
+  margin-top: 0;
 }
 
 .detalle-section {
