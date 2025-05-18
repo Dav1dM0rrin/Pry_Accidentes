@@ -4,6 +4,8 @@ from typing import List, Optional
 from sqlalchemy import CHAR, Column, Integer, String, Date, DateTime, ForeignKey, Float # Asegúrate de importar Float si lo usas
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
+# from .modelos import Zona, TipoVia, TipoAccidente, CondicionVictima, GravedadVictima, Barrio, Via, Ubicacion, Usuario, Accidente
+from .proxy import AccidentProxy
 
 Base = declarative_base()
 

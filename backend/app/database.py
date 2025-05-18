@@ -6,7 +6,7 @@ from app.core.config import settings
 # Añade echo=True para ver las consultas SQL
 engine = create_engine(settings.DATABASE_URL, echo=True)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 
 Base = declarative_base()
 
