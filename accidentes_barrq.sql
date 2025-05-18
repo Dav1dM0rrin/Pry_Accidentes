@@ -51,9 +51,9 @@ CREATE TABLE IF NOT EXISTS `accidente_accidente` (
   CONSTRAINT `accidente_accidente_usuario_id_a6dc4389_fk_autentica` FOREIGN KEY (`usuario_id`) REFERENCES `autenticacion_usuario` (`id`),
   CONSTRAINT `accidente_accidente_chk_1` CHECK (`edad_victima` >= 0),
   CONSTRAINT `accidente_accidente_chk_2` CHECK (`cantidad_victima` >= 0)
-) ENGINE=InnoDB AUTO_INCREMENT=14717 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14718 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla accidentesbaq.accidente_accidente: ~14.715 rows (aproximadamente)
+-- Volcando datos para la tabla accidentesbaq.accidente_accidente: ~14.459 rows (aproximadamente)
 REPLACE INTO `accidente_accidente` (`id`, `created`, `updated`, `fecha`, `sexo_victima`, `edad_victima`, `cantidad_victima`, `usuario_id`, `condicion_victima_id`, `gravedad_victima_id`, `tipo_accidente_id`, `ubicacion_id`) VALUES
 	(1, '2025-01-15 03:35:20.634175', '2025-01-15 03:35:20.634232', '2018-01-01', 'M', 63, 1, 1, 1, 1, 1, 1),
 	(2, '2025-01-15 03:35:20.940690', '2025-01-15 03:35:20.940743', '2018-01-01', 'F', 19, 1, 1, 1, 1, 1, 2),
@@ -14770,7 +14770,8 @@ REPLACE INTO `accidente_accidente` (`id`, `created`, `updated`, `fecha`, `sexo_v
 	(14713, '2025-04-11 17:57:45.000000', '2025-04-11 17:57:45.000000', '2025-04-11', 'M', 12, 1, 7, 1, 1, 1, 1),
 	(14714, '2025-05-12 19:03:30.526521', '2025-05-12 19:03:30.526521', '2025-05-13', NULL, 12, 1, 11, 2, 1, 1, 1),
 	(14715, '2025-05-12 19:13:13.966292', '2025-05-12 19:13:13.966292', '2025-05-13', 'F', 22, 3, 11, 2, 1, 1, 58),
-	(14716, '2025-05-14 15:45:58.319926', '2025-05-14 15:45:58.319926', '2025-05-14', NULL, 12, 1, 11, 2, 1, 1, 1);
+	(14716, '2025-05-14 15:45:58.319926', '2025-05-14 15:45:58.319926', '2025-05-14', NULL, 12, 1, 11, 2, 1, 1, 1),
+	(14717, '2025-05-16 18:46:05.949755', '2025-05-16 18:46:05.949755', '2025-05-16', 'M', 12, 1, 11, 2, 1, 2, 1);
 
 -- Volcando estructura para tabla accidentesbaq.accidente_barrio
 CREATE TABLE IF NOT EXISTS `accidente_barrio` (
@@ -14787,7 +14788,7 @@ CREATE TABLE IF NOT EXISTS `accidente_barrio` (
   KEY `idx_nombre_normalizado` (`nombre_normalizado`),
   CONSTRAINT `accidente_barrio_FK_0_0` FOREIGN KEY (`zona_id`) REFERENCES `accidente_zona` (`id`),
   CONSTRAINT `accidente_barrio_zona_id_4a956b73_fk_accidente_zona_id` FOREIGN KEY (`zona_id`) REFERENCES `accidente_zona` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=248 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=249 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Volcando datos para la tabla accidentesbaq.accidente_barrio: ~225 rows (aproximadamente)
 REPLACE INTO `accidente_barrio` (`id`, `created`, `updated`, `nombre`, `zona_id`, `nombre_normalizado`) VALUES
@@ -15126,7 +15127,7 @@ CREATE TABLE IF NOT EXISTS `accidente_ubicacion` (
   CONSTRAINT `accidente_ubicacion_segunda_via_id_18c57084_fk_accidente_via_id` FOREIGN KEY (`segunda_via_id`) REFERENCES `accidente_via` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4459 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla accidentesbaq.accidente_ubicacion: ~4.455 rows (aproximadamente)
+-- Volcando datos para la tabla accidentesbaq.accidente_ubicacion: ~4.557 rows (aproximadamente)
 REPLACE INTO `accidente_ubicacion` (`id`, `created`, `updated`, `latitud`, `longitud`, `complemento`, `barrio_id`, `primer_via_id`, `segunda_via_id`) VALUES
 	(1, '2025-01-15 03:35:20.552779', '2025-01-15 03:35:20.552816', 10.959004, -74.825597, NULL, 22, 1, 2),
 	(2, '2025-01-15 03:35:20.861424', '2025-01-15 03:35:20.861484', 10.963958, -74.843111, NULL, 42, 3, 4),
@@ -20406,12 +20407,12 @@ CREATE TABLE IF NOT EXISTS `autenticacion_usuario` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `sqlite_autoindex_autenticacion_usuario_1` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Volcando datos para la tabla accidentesbaq.autenticacion_usuario: ~3 rows (aproximadamente)
 REPLACE INTO `autenticacion_usuario` (`id`, `username`, `password`, `email`, `primer_nombre`, `primer_apellido`, `last_login`) VALUES
 	(1, 'zlcosio21', 'pbkdf2_sha256$870000$mfBIZfuSxxtA2EvbVfwJAD$Cj4pBODJJyndMuakpukmq8h8ONBM0U6mTRFBYmSGkVc=', 'sebas60621@gmail.com', '', '', '2025-04-08 21:26:26.000000'),
-	(7, 'David', 'david1928', 'davidmorrinson12@gmail.com', 'David', 'Morrinson', '2025-04-08 21:25:57.000000'),
+	(7, 'David', '$2b$12$2G4DWTXTfVcSN3BmxL4Q5edtH4RiGxp01C/Hi0talO9JYkz2RoMOa', 'davidmorrinson12@gmail.com', 'David', 'Morrinson', '2025-04-08 21:25:57.000000'),
 	(11, 'Davis', '$2b$12$MAZtwwUwju6Wbz0Mm4r8u.iXOmuYTAAEChMKMuZCwNK4emgxnL1Le', 'davismorrinson12@gmail.com', 'Davis', 'Morrinson', '2025-04-11 18:18:58.000000');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
