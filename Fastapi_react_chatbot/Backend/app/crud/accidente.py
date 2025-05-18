@@ -126,43 +126,6 @@ def obtener_usuarios(db: Session):
     return db.query(modelos.Usuario).all()
 
 
-# NUEVA FUNCIÓN PARA OBTENER USUARIO POR ID
-def obtener_usuario_por_id(db: Session, usuario_id: int) -> Optional[modelos.Usuario]:
-    return db.query(modelos.Usuario).filter(modelos.Usuario.id == usuario_id).first()
-
-# NUEVA FUNCIÓN PARA ACTUALIZAR USUARIO
-def actualizar_usuario(db: Session, usuario_id: int, usuario_update: schemas.UsuarioUpdate) -> Optional[modelos.Usuario]:
-    db_usuario = obtener_usuario_por_id(db, usuario_id)
-    if not db_usuario:
-        return None
-
-    update_data = usuario_update.dict(exclude_unset=True) # Solo incluye campos que fueron enviados
-
-    if "password" in update_data and update_data["password"]: # Si se envía una nueva contraseña
-        hashed_password = auth.hash_password(update_data["password"])
-        update_data["password"] = hashed_password
-    elif "password" in update_data: # Si se envía password como None o vacío, no se actualiza
-        del update_data["password"]
-
-
-    for key, value in update_data.items():
-        setattr(db_usuario, key, value)
-
-    db.add(db_usuario)
-    db.commit()
-    db.refresh(db_usuario)
-    return db_usuario
-
-# NUEVA FUNCIÓN PARA ELIMINAR USUARIO
-def eliminar_usuario_por_id(db: Session, usuario_id: int) -> Optional[modelos.Usuario]:
-    db_usuario = obtener_usuario_por_id(db, usuario_id)
-    if not db_usuario:
-        return None
-    db.delete(db_usuario)
-    db.commit()
-    return db_usuario
-
-
 # --- ACCIDENTE ---
 def crear_accidente(db: Session, accidente_data: schemas.AccidenteCreateInput, usuario_id: int):
     db_accidente_data = accidente_data.dict()

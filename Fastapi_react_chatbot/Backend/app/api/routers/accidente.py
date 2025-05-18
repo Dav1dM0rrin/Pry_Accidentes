@@ -1,7 +1,7 @@
 # Fastapi_React/Backend/app/api/routers/accidente.py
 from datetime import date
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query ,  status 
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas import schemas # Asegúrate que importe schemas
@@ -92,84 +92,13 @@ def listar_vias(db: Session = Depends(get_db)):
 
 
 # --- USUARIO ---
-
-# --- USUARIO ---
-# El endpoint de creación de usuario ya existe y está público (sin `Depends(obtener_usuario_actual)`).
-# Considera si quieres protegerlo también. Por ahora, lo dejamos como está.
-@router.post("/usuarios/", response_model=schemas.UsuarioRead, status_code=status.HTTP_201_CREATED)
-def crear_usuario_endpoint(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
-    # Verificar si el username o email ya existen
-    db_user_by_username = crud_accidente.obtener_usuario_por_id(db, usuario.username) # Asumiendo que tienes una función para buscar por username
-    if db_user_by_username:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
-    # Deberías tener una función similar para email si también debe ser único
-    # db_user_by_email = crud_accidente.obtener_usuario_por_email(db, usuario.email)
-    # if db_user_by_email:
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+@router.post("/usuarios/", response_model=schemas.UsuarioRead)
+def crear_usuario_endpoint(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)): # Renombrado para evitar conflicto
     return crud_accidente.crear_usuario(db, usuario)
 
-# Listar usuarios, protegido
 @router.get("/usuarios/", response_model=list[schemas.UsuarioRead])
-def listar_usuarios(db: Session = Depends(get_db), current_user: modelos.Usuario = Depends(obtener_usuario_actual)):
+def listar_usuarios(db: Session = Depends(get_db)):
     return crud_accidente.obtener_usuarios(db)
-
-# NUEVO ENDPOINT: Obtener un usuario específico por ID
-@router.get("/usuarios/{usuario_id}", response_model=schemas.UsuarioRead)
-def obtener_usuario_por_id_endpoint(
-    usuario_id: int,
-    db: Session = Depends(get_db),
-    current_user: modelos.Usuario = Depends(obtener_usuario_actual)
-):
-    db_usuario = crud_accidente.obtener_usuario_por_id(db, usuario_id)
-    if db_usuario is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
-    return db_usuario
-
-# NUEVO ENDPOINT: Actualizar un usuario
-@router.put("/usuarios/{usuario_id}", response_model=schemas.UsuarioRead)
-def actualizar_usuario_endpoint(
-    usuario_id: int,
-    usuario_update: schemas.UsuarioUpdate,
-    db: Session = Depends(get_db),
-    current_user: modelos.Usuario = Depends(obtener_usuario_actual) # Proteger la ruta
-):
-    # Opcional: Verificar si el usuario actual es el mismo que se está editando o si es un admin
-    # if current_user.id != usuario_id and not current_user.is_admin: # Necesitarías un campo is_admin en tu modelo Usuario
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permiso para editar este usuario")
-
-    # Verificar si el nuevo username o email ya están en uso por OTRO usuario
-    if usuario_update.username:
-        user_with_new_username = db.query(modelos.Usuario).filter(modelos.Usuario.username == usuario_update.username, modelos.Usuario.id != usuario_id).first()
-        if user_with_new_username:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El nuevo username ya está en uso.")
-    if usuario_update.email:
-        user_with_new_email = db.query(modelos.Usuario).filter(modelos.Usuario.email == usuario_update.email, modelos.Usuario.id != usuario_id).first()
-        if user_with_new_email:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El nuevo email ya está en uso.")
-
-
-    updated_user = crud_accidente.actualizar_usuario(db, usuario_id, usuario_update)
-    if updated_user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado para actualizar")
-    return updated_user
-
-# NUEVO ENDPOINT: Eliminar un usuario
-@router.delete("/usuarios/{usuario_id}", response_model=schemas.UsuarioRead) # O puedes devolver un {"message": "Usuario eliminado"}
-def eliminar_usuario_endpoint(
-    usuario_id: int,
-    db: Session = Depends(get_db),
-    current_user: modelos.Usuario = Depends(obtener_usuario_actual) # Proteger la ruta
-):
-    # Opcional: Verificar permisos (ej. solo admin puede eliminar o el propio usuario)
-    # if current_user.id != usuario_id and not current_user.is_admin:
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permiso para eliminar este usuario")
-    # Evitar que un usuario se elimine a sí mismo si es el único admin, etc. (lógica de negocio)
-
-    deleted_user = crud_accidente.eliminar_usuario_por_id(db, usuario_id)
-    if deleted_user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado para eliminar")
-    return deleted_user # O return {"message": f"Usuario {usuario_id} eliminado"}
-
 
 
 # --- ACCIDENTE ---

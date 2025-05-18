@@ -1,7 +1,10 @@
 # Fastapi_React/Backend/app/schemas/schemas.py
-from pydantic import BaseModel, EmailStr # Importar EmailStr para validación de email
+from pydantic import BaseModel, validator # validator no se usa aquí, se puede quitar si no es necesario
 from typing import Optional
 from datetime import date, datetime
+# from decimal import Decimal # No es necesario importar Decimal si usamos float
+
+# ... (LoginRequest, Token, TokenData sin cambios) ...
 
 class LoginRequest(BaseModel):
     username: str
@@ -57,7 +60,7 @@ class BarrioBase(BaseModel):
 
 class BarrioRead(BarrioBase):
     id: int
-    zona: Optional[ZonaRead] = None
+    zona: Optional[ZonaRead] = None 
     class Config:
         from_attributes = True
 
@@ -69,26 +72,27 @@ class ViaBase(BaseModel):
 
 class ViaRead(ViaBase):
     id: int
-    tipo_via: Optional[TipoViaRead] = None
+    tipo_via: Optional[TipoViaRead] = None 
     class Config:
         from_attributes = True
 
 class UbicacionBase(BaseModel):
-    latitud: Optional[float] = None
+    # Cambiar latitud y longitud a Optional[float]
+    latitud: Optional[float] = None 
     longitud: Optional[float] = None
     complemento: Optional[str] = None
-    barrio_id: Optional[int] = None
+    barrio_id: Optional[int] = None 
     primer_via_id: int
     segunda_via_id: Optional[int] = None
 
 class UbicacionRead(UbicacionBase):
     id: int
-    barrio: Optional[BarrioRead] = None
-    primer_via: Optional[ViaRead] = None
-    segunda_via: Optional[ViaRead] = None
+    barrio: Optional[BarrioRead] = None 
+    primer_via: Optional[ViaRead] = None 
+    segunda_via: Optional[ViaRead] = None 
     class Config:
         from_attributes = True
-
+    
 
 class GravedadVictimaBase(BaseModel):
     nivel_gravedad: str
@@ -101,36 +105,26 @@ class GravedadVictimaRead(GravedadVictimaBase):
 
 class UsuarioBase(BaseModel):
     username: str
-    email: EmailStr # Usar EmailStr para validación automática
-    primer_nombre: Optional[str] = None
-    primer_apellido: Optional[str] = None
 
 class UsuarioCreate(UsuarioBase):
     password: str
-    # Asegúrate de que los campos obligatorios en el modelo estén aquí
-    primer_nombre: str # Si es obligatorio en el modelo
-    primer_apellido: str # Si es obligatorio en el modelo
+    email:str
+    primer_nombre:str
+    primer_apellido:str
 
-
-class UsuarioRead(UsuarioBase):
+class UsuarioRead(UsuarioBase): 
     id: int
-    # No es necesario incluir la contraseña en las respuestas de lectura
+    email: str
+    primer_nombre: str
+    primer_apellido: str
     class Config:
         from_attributes = True
-
-# NUEVO ESQUEMA PARA ACTUALIZAR USUARIO
-class UsuarioUpdate(BaseModel):
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    primer_nombre: Optional[str] = None
-    primer_apellido: Optional[str] = None
-    password: Optional[str] = None # Para permitir cambiar la contraseña
 
 
 # ----------- MODELO ACCIDENTE ------------ #
 
 class AccidenteBase(BaseModel):
-  fecha: datetime
+  fecha: datetime 
   sexo_victima: Optional[str] = None
   edad_victima: Optional[int] = None
   cantidad_victima: Optional[int] = None
@@ -138,25 +132,25 @@ class AccidenteBase(BaseModel):
   gravedad_victima_id: int
   tipo_accidente_id: int
   ubicacion_id: int
-
+  
 
 class AccidenteCreateInput(AccidenteBase):
     pass
 
 
-class AccidenteCreate(AccidenteBase):
+class AccidenteCreate(AccidenteBase): 
     usuario_id: int
 
 
-class AccidenteRead(AccidenteBase):
+class AccidenteRead(AccidenteBase): 
     id: int
-    usuario_id: int
-
+    usuario_id: int 
+    
     usuario: Optional[UsuarioRead] = None
     tipo_accidente: Optional[TipoAccidenteRead] = None
     condicion_victima: Optional[CondicionVictimaRead] = None
-    gravedad: Optional[GravedadVictimaRead] = None
+    gravedad: Optional[GravedadVictimaRead] = None 
     ubicacion: Optional[UbicacionRead] = None
-
+    
     class Config:
         from_attributes = True
