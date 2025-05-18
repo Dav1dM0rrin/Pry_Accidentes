@@ -3,9 +3,11 @@ from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func 
 from app.schemas import schemas
-from app.models import modelos
+from app.models import modelos, proxy
 from app.crud import auth # Asegúrate que auth.py esté en la misma carpeta (crud) o ajusta la importación
 from datetime import date
+from app.models.proxy import AccidentProxy
+
 
 # --- ZONA ---
 def crear_zona(db: Session, zona: schemas.ZonaBase):
@@ -195,3 +197,12 @@ def obtener_accidentes_filtrados_mapa(
     query = query.order_by(modelos.Accidente.fecha.desc(), modelos.Accidente.id.desc())
     query = query.limit(limit)
     return query.all()
+
+# --- PROXY ---
+proxy = AccidentProxy()
+def obtener_proxy(refrescar: bool = False):
+    """
+    Función que utiliza el proxy para obtener los accidentes.
+    El parámetro 'refrescar' fuerza la recarga de datos desde la BD.
+    """
+    return proxy.obtener_accidentes(refrescar)

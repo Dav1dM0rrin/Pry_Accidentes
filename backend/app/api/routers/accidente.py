@@ -4,12 +4,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.models.proxy import AccidentProxy
 from app.schemas import schemas # Asegúrate que importe schemas
 from app.crud import accidente as crud_accidente # Renombrado para claridad
 from app.models import modelos
 from app.crud.auth import obtener_usuario_actual
 
 router = APIRouter()
+proxy = AccidentProxy()
 
 # --- ZONA ---
 @router.post("/zonas/", response_model=schemas.ZonaRead) # Cambiado a ZonaRead
@@ -132,6 +134,12 @@ def eliminar_accidente_endpoint(
         raise HTTPException(status_code=404, detail="Accidente no encontrado")
     return {"mensaje": "Accidente eliminado"}
 
+@router.get("/proxy/", response_model=list[schemas.AccidenteRead])
+def listar_accidentes_proxy(refrescar: bool = Query(False, description="Forzar actualización desde la BD en el proxy")):
+    accidentes = proxy.obtener_accidentes(refrescar)
+    if not accidentes:
+        raise HTTPException(status_code=404, detail="No se encontraron accidentes")
+    return accidentes
 
 ##------ MAPA ----------###
 @router.get("/api/accidentes/mapa", response_model=List[dict])

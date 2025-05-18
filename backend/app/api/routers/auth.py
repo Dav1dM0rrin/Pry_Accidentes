@@ -18,10 +18,6 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     access_token = crear_token(data={"sub": usuario.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
-
-
-
 @router.get("/me", response_model=UsuarioRead)
 def get_usuario_actual(usuario = Depends(obtener_usuario_actual)):
     return usuario
