@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `accidente_accidente` (
   CONSTRAINT `accidente_accidente_chk_2` CHECK (`cantidad_victima` >= 0)
 ) ENGINE=InnoDB AUTO_INCREMENT=14718 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla accidentesbaq.accidente_accidente: ~14.459 rows (aproximadamente)
+-- Volcando datos para la tabla accidentesbaq.accidente_accidente: ~14.833 rows (aproximadamente)
 REPLACE INTO `accidente_accidente` (`id`, `created`, `updated`, `fecha`, `sexo_victima`, `edad_victima`, `cantidad_victima`, `usuario_id`, `condicion_victima_id`, `gravedad_victima_id`, `tipo_accidente_id`, `ubicacion_id`) VALUES
 	(1, '2025-01-15 03:35:20.634175', '2025-01-15 03:35:20.634232', '2018-01-01', 'M', 63, 1, 1, 1, 1, 1, 1),
 	(2, '2025-01-15 03:35:20.940690', '2025-01-15 03:35:20.940743', '2018-01-01', 'F', 19, 1, 1, 1, 1, 1, 2),
@@ -14790,7 +14790,7 @@ CREATE TABLE IF NOT EXISTS `accidente_barrio` (
   CONSTRAINT `accidente_barrio_zona_id_4a956b73_fk_accidente_zona_id` FOREIGN KEY (`zona_id`) REFERENCES `accidente_zona` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=249 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla accidentesbaq.accidente_barrio: ~225 rows (aproximadamente)
+-- Volcando datos para la tabla accidentesbaq.accidente_barrio: ~226 rows (aproximadamente)
 REPLACE INTO `accidente_barrio` (`id`, `created`, `updated`, `nombre`, `zona_id`, `nombre_normalizado`) VALUES
 	(1, '2025-01-15 03:35:19.849233', '2025-01-15 03:35:19.849276', 'Alfonso López', 1, 'alfonso lopez'),
 	(2, '2025-01-15 03:35:19.849312', '2025-01-15 03:35:19.849330', 'Bernardo Hoyos', 1, 'bernardo hoyos'),
@@ -20385,15 +20385,14 @@ CREATE TABLE IF NOT EXISTS `accidente_zona` (
   UNIQUE KEY `sqlite_autoindex_accidente_zona_1` (`nombre`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla accidentesbaq.accidente_zona: ~7 rows (aproximadamente)
+-- Volcando datos para la tabla accidentesbaq.accidente_zona: ~6 rows (aproximadamente)
 REPLACE INTO `accidente_zona` (`id`, `created`, `updated`, `nombre`) VALUES
 	(1, '2025-01-15 03:34:21', '2025-01-15 03:34:21.098986', 'Suroccidente'),
 	(2, '2025-01-15 03:34:21', '2025-01-15 03:34:21.259260', 'Metropolitana'),
 	(3, '2025-01-15 03:34:22', '2025-01-15 03:34:21.503076', 'Suroriente'),
 	(4, '2025-01-15 03:34:22', '2025-01-15 03:34:21.650265', 'Norte - Centro Histórico'),
 	(5, '2025-01-15 03:34:22', '2025-01-15 03:34:21.750585', 'Riomar'),
-	(6, '2025-01-15 03:35:20', '2025-01-15 03:35:20.310120', 'Sin definir'),
-	(7, '2025-04-08 21:19:27', '2025-04-08 21:19:27.000000', 'No definido');
+	(6, '2025-01-15 03:35:20', '2025-01-15 03:35:20.310120', 'Sin definir');
 
 -- Volcando estructura para tabla accidentesbaq.autenticacion_usuario
 CREATE TABLE IF NOT EXISTS `autenticacion_usuario` (
@@ -20414,6 +20413,30 @@ REPLACE INTO `autenticacion_usuario` (`id`, `username`, `password`, `email`, `pr
 	(1, 'zlcosio21', 'pbkdf2_sha256$870000$mfBIZfuSxxtA2EvbVfwJAD$Cj4pBODJJyndMuakpukmq8h8ONBM0U6mTRFBYmSGkVc=', 'sebas60621@gmail.com', '', '', '2025-04-08 21:26:26.000000'),
 	(7, 'David', '$2b$12$2G4DWTXTfVcSN3BmxL4Q5edtH4RiGxp01C/Hi0talO9JYkz2RoMOa', 'davidmorrinson12@gmail.com', 'David', 'Morrinson', '2025-04-08 21:25:57.000000'),
 	(11, 'Davis', '$2b$12$MAZtwwUwju6Wbz0Mm4r8u.iXOmuYTAAEChMKMuZCwNK4emgxnL1Le', 'davismorrinson12@gmail.com', 'Davis', 'Morrinson', '2025-04-11 18:18:58.000000');
+
+-- Volcando estructura para tabla accidentesbaq.lectura_sensor
+CREATE TABLE IF NOT EXISTS `lectura_sensor` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `temperatura` float NOT NULL,
+  `humedad` float NOT NULL,
+  `fecha_hora` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Volcando datos para la tabla accidentesbaq.lectura_sensor: ~12 rows (aproximadamente)
+REPLACE INTO `lectura_sensor` (`id`, `temperatura`, `humedad`, `fecha_hora`) VALUES
+	(1, 31.7, 71.3, '2025-05-19 11:22:53'),
+	(2, 31.7, 71.4, '2025-05-19 11:23:14'),
+	(3, 31.7, 71.4, '2025-05-19 11:23:20'),
+	(4, 31.7, 71.4, '2025-05-19 11:23:29'),
+	(5, 31.6, 71.8, '2025-05-19 11:25:14'),
+	(6, 31.6, 71.7, '2025-05-19 11:25:20'),
+	(7, 31.6, 71.7, '2025-05-19 11:25:26'),
+	(8, 31.6, 71.6, '2025-05-19 11:25:32'),
+	(9, 32, 75, '2025-05-19 11:25:52'),
+	(10, 31.9, 72.3, '2025-05-19 11:25:58'),
+	(11, 34.9, 92, '2025-05-19 11:26:04'),
+	(12, 33.5, 89.4, '2025-05-19 11:26:10');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

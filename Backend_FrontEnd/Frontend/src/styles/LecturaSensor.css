@@ -1,0 +1,546 @@
+/* Frontend/src/styles/LecturaSensor.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --iot-primary-color: #0077b6; 
+  --iot-secondary-color: #00b4d8; 
+  --iot-background-color: #f4f6f9; /* Fondo general de la página (área de contenido) */
+  --iot-card-background: #ffffff; 
+  --iot-text-color: #343a40; 
+  --iot-text-secondary-color: #6c757d; 
+  --iot-border-color: #dee2e6; 
+  --iot-temp-color: #ff8c00; 
+  --iot-hum-color: #00b4d8;  
+  --iot-success-color: #28a745;
+  --iot-warning-color: #ffc107;
+  --iot-error-color: #dc3545; 
+  --iot-error-background-color: #f8d7da; 
+  --iot-card-shadow: 0 0 1px rgba(0,0,0,.125),0 1px 3px rgba(0,0,0,.2); 
+  --iot-card-border-radius: .25rem; 
+  
+  /* Colores para la nueva barra de navegación */
+  --navbar-bg-level1: #005a8d; /* Azul oscuro para la primera barra */
+  --navbar-bg-level2: #007bff; /* Azul más claro para la segunda barra */
+  --navbar-text-color: #ffffff;
+  --navbar-link-hover-bg: #0069d9;
+  --navbar-link-active-bg: #0056b3; /* Azul más oscuro para link activo */
+}
+
+/* Contenedor principal de la página autónoma */
+.lectura-iot-page-standalone-container {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--iot-background-color); 
+  min-height: 100vh;
+  color: var(--iot-text-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nueva Barra de Navegación Autónoma */
+.app-navbar-standalone {
+  background-color: var(--navbar-bg-level1); 
+  color: var(--navbar-text-color);
+  flex-shrink: 0; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky; 
+  top: 0;
+  z-index: 1000; 
+}
+
+.app-navbar-level1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 25px; /* Padding horizontal */
+  height: 50px; 
+}
+
+.app-navbar-brand {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.app-navbar-logout {
+  background-color: transparent;
+  color: var(--navbar-text-color);
+  border: 1px solid var(--navbar-text-color);
+  padding: 6px 12px;
+  border-radius: var(--iot-card-border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.app-navbar-logout:hover {
+  background-color: var(--navbar-text-color);
+  color: var(--navbar-bg-level1);
+}
+.app-navbar-logout svg {
+  margin-right: 4px;
+}
+
+.app-navbar-level2 {
+  background-color: var(--navbar-bg-level2); 
+  padding: 0 20px; /* Padding reducido para más espacio para links */
+  height: 40px; 
+  display: flex;
+  align-items: center;
+  overflow-x: auto; /* Para scroll horizontal en móvil si hay muchos links */
+}
+
+.app-nav-links {
+  display: flex;
+  gap: 2px; /* Espacio muy pequeño entre links */
+  height: 100%;
+  align-items: stretch; /* Para que los links ocupen toda la altura */
+}
+
+.app-nav-link {
+  color: var(--navbar-text-color);
+  text-decoration: none;
+  padding: 0 12px; /* Padding ajustado */
+  font-size: 0.875rem; /* Ligeramente más pequeño */
+  font-weight: 400; /* Normal weight */
+  display: flex;
+  align-items: center;
+  /* height: 100%; No necesario si align-items: stretch en el contenedor */
+  border-radius: var(--iot-card-border-radius) var(--iot-card-border-radius) 0 0; 
+  transition: background-color 0.2s ease;
+  gap: 6px;
+  white-space: nowrap; /* Evitar que el texto del link se rompa */
+}
+.app-nav-link:hover {
+  background-color: var(--navbar-link-hover-bg);
+}
+.app-nav-link.active {
+  background-color: var(--navbar-link-active-bg); 
+  font-weight: 500; /* Un poco más de peso para el activo */
+}
+.app-nav-link svg {
+    margin-right: 4px; /* Espacio entre icono y texto */
+}
+.app-nav-link-disabled { /* Para la vista de carga */
+    color: #cccccc;
+    padding: 0 12px;
+    font-size: 0.875rem;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.7;
+}
+.app-nav-link-disabled svg { margin-right: 4px; }
+
+
+/* Área de contenido principal debajo de la nueva barra */
+.page-content-area-standalone {
+  padding: 20px 25px; 
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título específico de la página y Controles (debajo de la barra de navegación) */
+.page-header-iot {
+  display: flex;
+  flex-direction: column; 
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--iot-border-color);
+}
+
+.page-title-iot {
+  font-size: 1.6rem; 
+  font-weight: 500; 
+  color: var(--iot-text-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0; 
+}
+.title-icon-iot {
+  color: var(--iot-primary-color);
+  stroke-width: 2.2;
+}
+
+.data-page-controls-iot {
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+  flex-wrap: wrap; 
+  width: 100%; 
+}
+
+/* Estilos para los controles (adaptados de antes) */
+.control-button-iot {
+  background-color: var(--iot-primary-color);
+  color: white;
+  border: none;
+  padding: .375rem .75rem;
+  border-radius: var(--iot-card-border-radius);
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.control-button-iot:hover {
+  background-color: #0069d9; 
+}
+.control-button-iot:disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
+}
+
+.auto-refresh-control-iot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--iot-card-background);
+  padding: 7px 10px;
+  border-radius: var(--iot-card-border-radius);
+  border: 1px solid var(--iot-border-color);
+}
+.toggle-label-iot {
+  font-size: 0.9rem;
+  color: var(--iot-text-secondary-color);
+  font-weight: 400;
+  cursor: pointer;
+}
+.toggle-switch-iot {
+  position: relative; display: inline-block; width: 38px; height: 20px;
+  background-color: #ccc; border-radius: 34px; transition: background-color 0.3s;
+  cursor: pointer; border: none;
+}
+.toggle-switch-iot.active { background-color: var(--iot-success-color); }
+.toggle-slider-iot {
+  position: absolute; content: ""; height: 16px; width: 16px;
+  left: 2px; bottom: 2px; background-color: white;
+  border-radius: 50%; transition: transform 0.3s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.toggle-switch-iot.active .toggle-slider-iot { transform: translateX(18px); }
+
+.spin-animation { animation: spin 1.5s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+
+/* Barra de Estado */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem; 
+  color: var(--iot-text-secondary-color);
+  background-color: #e9ecef; 
+  padding: 8px 12px;
+  border-radius: var(--iot-card-border-radius);
+  margin-bottom: 20px; 
+  border: 1px solid var(--iot-border-color); 
+  flex-shrink: 0;
+}
+
+/* Grid para Contenido Principal (2 columnas) */
+.main-content-grid {
+  display: grid;
+  grid-template-columns: 1fr; 
+  gap: 20px; 
+  flex-grow: 1; 
+}
+
+.grid-column {
+  min-width: 0; 
+  display: flex; 
+  flex-direction: column;
+}
+
+.data-section-card { 
+  background-color: var(--iot-card-background); 
+  padding: 0; 
+  border-radius: var(--iot-card-border-radius);
+  box-shadow: var(--iot-card-shadow); 
+  border: 1px solid var(--iot-border-color); 
+  height: 100%; 
+  display: flex; 
+  flex-direction: column;
+  flex-grow: 1; 
+}
+
+.section-heading {
+  font-size: 1.1rem; 
+  font-weight: 500; 
+  color: var(--iot-text-color); 
+  margin:0; 
+  padding: .75rem 1.25rem; 
+  border-bottom: 1px solid var(--iot-border-color); 
+  display: flex; 
+  align-items: center;
+  flex-shrink: 0;
+  background-color: rgba(0,0,0,.03); 
+  border-top-left-radius: var(--iot-card-border-radius); 
+  border-top-right-radius: var(--iot-card-border-radius);
+}
+.section-heading svg { 
+    margin-right: 8px;
+    color: var(--iot-primary-color); 
+}
+
+.section-card-body {
+    padding: 1.25rem; 
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.latest-reading-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+  gap: 15px;
+  flex-shrink: 0; 
+}
+
+.reading-card {
+  background-color: var(--iot-card-background); 
+  border-radius: var(--iot-card-border-radius);
+  padding: 1rem; 
+  display: flex;
+  align-items: center;
+  gap: 12px; 
+  border: 1px solid var(--iot-border-color);
+  border-left-width: 4px; 
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 0 1px rgba(0,0,0,.05); 
+}
+.reading-card:hover {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.temperature-card { border-left-color: var(--iot-temp-color); }
+.humidity-card { border-left-color: var(--iot-hum-color); }
+.timestamp-card { border-left-color: var(--iot-text-secondary-color); } 
+
+.card-icon-background {
+  padding: 8px; 
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; 
+  background-color: transparent; 
+}
+
+.card-icon { stroke-width: 2.2; } 
+.temperature-card .card-icon { color: var(--iot-temp-color); }
+.humidity-card .card-icon { color: var(--iot-hum-color); }
+.timestamp-card .card-icon { color: var(--iot-text-secondary-color); } 
+
+.card-content { flex-grow: 1; min-width: 0; }
+.card-label {
+  font-size: 0.75rem; 
+  color: var(--iot-text-secondary-color);
+  margin-bottom: 2px;
+  font-weight: 400; 
+  text-transform: uppercase; 
+}
+.card-value {
+  font-size: 1.5rem; 
+  font-weight: 600; 
+  line-height: 1.2;
+  word-break: break-all; 
+}
+.temperature-card .card-value { color: var(--iot-temp-color); }
+.humidity-card .card-value { color: var(--iot-hum-color); }
+.card-value-small { 
+  font-size: 0.85rem; 
+  font-weight: 400; 
+  color: var(--iot-text-secondary-color);
+  line-height: 1.3;
+}
+
+/* Tabla de Historial */
+.table-responsive-wrapper {
+  overflow: hidden; 
+  flex-grow: 1; 
+  display: flex; 
+  flex-direction: column;
+  min-height: 300px; 
+}
+
+.readings-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem; 
+}
+
+.readings-history-table th,
+.readings-history-table td {
+  padding: .75rem; 
+  text-align: left;
+  border-bottom: 1px solid var(--iot-border-color);
+  white-space: nowrap; 
+}
+.readings-history-table tr:last-child td {
+    border-bottom: none; 
+}
+
+.readings-history-table thead th {
+  background-color: #f8f9fa; 
+  font-weight: 500; 
+  color: var(--iot-text-secondary-color);
+  position: sticky; 
+  top: 0; 
+  z-index: 1; 
+  border-bottom-width: 2px; 
+}
+
+.readings-history-table tbody {
+    display: block; 
+    max-height: calc(100vh - 500px); 
+    overflow-y: auto;
+    width: 100%;
+}
+.readings-history-table thead, .readings-history-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed; 
+}
+.readings-history-table tbody tr:hover { background-color: #f1f3f5; } 
+.table-icon { margin-right: 6px; vertical-align: middle; stroke-width: 2; }
+.temp-icon { color: var(--iot-temp-color); }
+.hum-icon { color: var(--iot-hum-color); }
+
+/* Mensajes de Carga, Error, Sin Datos */
+.loading-placeholder, .no-data-message {
+  text-align: center;
+  padding: 20px; 
+  margin-top: 10px;
+  color: var(--iot-text-secondary-color);
+  flex-grow: 1; 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.loading-placeholder p { font-weight: 500; }
+
+.error-container {
+  background-color: var(--iot-error-background-color);
+  color: #721c24; 
+  border: 1px solid #f5c6cb; 
+  padding: .75rem 1.25rem; 
+  margin-top: 10px;
+  border-radius: var(--iot-card-border-radius);
+  display: flex;
+  flex-direction: column; 
+  align-items: flex-start; 
+  gap: 6px; 
+}
+.error-container.main-error { 
+    align-items: center; 
+    text-align: center;
+    margin: 20px 0; 
+    background-color: var(--iot-card-background); 
+    box-shadow: var(--iot-card-shadow);
+    border: 1px solid var(--iot-error-color); 
+}
+.error-container .error-title { font-weight: 600; font-size: 1rem; margin-top: 4px;}
+.error-container .error-details { font-size: 0.85rem; }
+.error-container .error-suggestion { font-size: 0.75rem; color: var(--iot-text-secondary-color); }
+
+.no-data-message {
+  font-style: italic;
+}
+
+/* Responsividad */
+@media (min-width: 768px) { /* md breakpoint */
+  .page-header-iot {
+    flex-direction: row; 
+    align-items: center; 
+  }
+  .data-page-controls-iot {
+    margin-left: auto; 
+    width: auto; 
+  }
+  .page-title-iot { font-size: 1.6rem; } 
+  .section-heading { font-size: 1.1rem; } 
+}
+
+@media (min-width: 1024px) { /* lg breakpoint para layout de 2 columnas */
+  .main-content-grid {
+    grid-template-columns: minmax(320px, 0.8fr) 1.2fr; 
+    align-items: stretch; 
+  }
+  .column-latest-readings .latest-reading-cards-grid {
+    grid-template-columns: 1fr; 
+  }
+  .readings-history-table tbody {
+    max-height: calc(100vh - 450px); 
+  }
+}
+
+@media (max-width: 767.98px) { /* Ajustes para móviles y tablets pequeñas */
+    .app-navbar-level1 {
+        padding: 8px 15px;
+        height: auto; /* Altura automática para permitir que el contenido se ajuste */
+        flex-direction: column; /* Apilar brand y logout */
+        gap: 8px;
+    }
+    .app-navbar-brand {
+        font-size: 1.1rem;
+    }
+    .app-navbar-logout {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        align-self: flex-end; /* Alinear botón de logout a la derecha */
+    }
+    .app-navbar-level2 {
+        padding: 0 10px; /* Menos padding horizontal */
+        height: auto; /* Altura automática */
+        /* overflow-x: auto; ya está puesto */
+    }
+    .app-nav-links {
+        /* No es necesario flex-direction: column aquí si queremos scroll horizontal */
+        /* Si se prefiere apilado vertical, descomentar: */
+        /* flex-direction: column; */
+        /* width: 100%; */
+    }
+    .app-nav-link {
+        padding: 8px 10px; /* Menos padding para que quepan más */
+        font-size: 0.8rem; /* Texto más pequeño */
+        /* Si se apilan verticalmente: */
+        /* justify-content: flex-start; */
+        /* border-radius: var(--iot-card-border-radius); */
+        /* margin-bottom: 2px; */
+    }
+     .page-header-iot {
+        padding-top: 15px;
+    }
+}
+
+
+@media (max-width: 480px) { /* xs breakpoint */
+  .page-content-area-standalone { padding: 15px; }
+  /* .page-header-iot { padding: 0 0 15px 0; } */ /* Ya manejado por el padding de page-content-area */
+  .status-bar { margin: 0 0 15px 0; }
+  .main-content-grid { padding: 0 0 15px 0; }
+
+  .page-title-iot { font-size: 1.3rem; }
+  .card-value { font-size: 1.5rem; }
+  .reading-card { padding: 12px; gap: 10px; flex-direction: column; align-items: flex-start; }
+  .card-icon-background { padding: 8px; }
+  
+  .data-page-controls-iot { gap: 8px; justify-content: flex-start; width: 100%; }
+  .control-button-iot { padding: 7px 10px; font-size: 0.75rem; }
+  .toggle-label-iot { font-size: 0.75rem; }
+  .readings-history-table td, .readings-history-table th { padding: 7px 8px; font-size: 0.75rem; }
+}
+
