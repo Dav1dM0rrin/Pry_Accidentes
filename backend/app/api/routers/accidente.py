@@ -284,3 +284,13 @@ def obtener_accidentes_mapa(
                 print(f"Error al procesar lat/lng para accidente {acc.id}: {ubicacion.latitud}, {ubicacion.longitud}")
                 pass 
     return resultados
+
+# --- LECTURA SENSOR --- #
+
+@router.post("/lectura_sensor/", response_model=schemas.LecturaSensorOut)
+async def registrar_lectura_sensor(lectura: schemas.LecturaSensorCreate, db: Session = Depends(get_db)):
+    return crud_accidente.create_lectura_sensor(db, lectura)
+
+@router.get("/lectura_sensor/", response_model=list[schemas.LecturaSensorOut])
+async def obtener_lecturas_sensores(db: Session = Depends(get_db)):
+    return crud_accidente.get_lecturas_sensores(db)

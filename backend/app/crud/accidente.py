@@ -2,6 +2,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func 
+from app.models.sensor import LecturaSensor
 from app.schemas import schemas
 from app.models import modelos, proxy
 from app.crud import auth # Asegúrate que auth.py esté en la misma carpeta (crud) o ajusta la importación
@@ -243,3 +244,15 @@ def obtener_proxy(refrescar: bool = False):
     El parámetro 'refrescar' fuerza la recarga de datos desde la BD.
     """
     return proxy.obtener_accidentes(refrescar)
+
+# --- LECTURA SENSOR ---
+
+def create_lectura_sensor(db: Session, lectura: schemas.LecturaSensorCreate):
+    db_lectura = LecturaSensor(**lectura.dict())
+    db.add(db_lectura)
+    db.commit()
+    db.refresh(db_lectura)
+    return db_lectura
+
+def get_lecturas_sensores(db: Session):
+    return db.query(LecturaSensor).all()

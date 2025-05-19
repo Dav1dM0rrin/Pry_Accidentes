@@ -160,3 +160,16 @@ class AccidenteRead(AccidenteBase):
 
     class Config:
         from_attributes = True
+
+# ----------- SENSOR ------------ #
+
+class LecturaSensorCreate(BaseModel):
+    temperatura: float
+    humedad: float
+    fecha_hora: datetime
+
+class LecturaSensorOut(LecturaSensorCreate):
+    id: int
+
+    class Config:
+        orm_mode = True

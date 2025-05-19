@@ -98,4 +98,3 @@ if __name__ == "__main__":
         print("Asegúrate de que las migraciones se hayan ejecutado o que los modelos se hayan creado.")
     else:
         update_user_password()
-

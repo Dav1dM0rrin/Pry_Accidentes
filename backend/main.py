@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.routers import auth, accidente # o los routers que hayas creado
+from app.api.routers import auth, accidente
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -12,6 +12,7 @@ origins = [
     'http://localhost:8000',
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "http://192.168.1.100:8000" # IP para obtener datos del sensor
 ]
 
 app.add_middleware(
