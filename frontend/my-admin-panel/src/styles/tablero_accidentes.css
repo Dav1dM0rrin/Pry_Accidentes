@@ -35,15 +35,17 @@
   color: var(--text-color-muted, #6c757d); /* Usar variable de inicio.css */
   text-align: center;
   max-width: 800px; /* Limitar ancho de la descripción */
-  margin-bottom: 2.5rem; /* Más espacio antes del iframe */
+  margin-bottom: 2rem; /* Más espacio antes del iframe */
   line-height: 1.6;
+  margin-top: 3.5rem; /* Espacio superior para la descripción */
 }
 
 .iframe-container {
   width: 100%;
+  min-width: 900px;
   max-width: 1200px; /* Ancho máximo para el contenedor del iframe */
   height: 75vh; /* Altura relativa a la ventana gráfica */
-  min-height: 650px; /* Altura mínima considerable */
+  min-height: 450px; /* Altura mínima considerable */
   background-color: #e9ecef; /* Un fondo sutil mientras carga el iframe */
   border-radius: var(--card-border-radius, 0.5rem); /* Usar variable de inicio.css */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
