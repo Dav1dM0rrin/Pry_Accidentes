@@ -38,4 +38,4 @@ EJECUTAR CHATBOT
 
 Abrir nueva terminal y ejecutar el siguiente comando
 
-python -m chatbot.bot
+python -m chatbot.main_bot
