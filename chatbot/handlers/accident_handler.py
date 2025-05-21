@@ -1,365 +1,484 @@
-# chatbot/handlers/accident_handler.py
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+# Archivo: chatbot/handlers/accident_handler.py
+# Contiene el ConversationHandler para el flujo estructurado de reporte de accidentes.
+
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from telegram.ext import (
-    CallbackContext,
+    ContextTypes,
+    ConversationHandler,
     CommandHandler,
     MessageHandler,
-    filters,
-    ConversationHandler,
+    filters
 )
-from telegram.constants import ParseMode
-import logging
-import html 
-from ..api_client import APIClient
-from .conversation_states import DESCRIPTION, LATITUDE, LONGITUDE, GRAVITY, CONFIRMATION
+from chatbot.bot_logging import logger
+from chatbot.api_client import report_accident_api # Para enviar el reporte final a la API.
+from .conversation_states import ( # Definición de los estados de la conversación.
+    REPORTING_ACCIDENT_DESCRIPTION, REPORTING_ACCIDENT_LOCATION,
+    REPORTING_ACCIDENT_DATETIME_CHOICE, REPORTING_ACCIDENT_DATETIME_SPECIFIC,
+    REPORTING_ACCIDENT_GRAVEDAD, REPORTING_ACCIDENT_CONFIRMATION,
+    # SELECTING_ACTION # Podría ser un estado "padre" o de menú al que volver.
+)
+import datetime
+from zoneinfo import ZoneInfo # Para manejo correcto de zonas horarias.
 
-logger = logging.getLogger(__name__)
-api_client = APIClient()
+# Define la zona horaria de Colombia. Es importante para registrar fechas y horas correctamente.
+COLOMBIA_TZ = ZoneInfo("America/Bogota")
 
-def _get_nested_value(data_dict, path, default='N/D'):
+# --- Funciones del ConversationHandler para Reportar Accidente ---
+
+async def start_accident_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    Obtiene un valor de un diccionario anidado usando una ruta de claves.
-    Ejemplo: path=['ubicacion', 'latitud']
+    Punto de entrada para el ConversationHandler de reporte de accidentes.
+    Se activa con el comando /reportar.
     """
-    current = data_dict
-    for key in path:
-        if isinstance(current, dict) and key in current:
-            current = current[key]
-        else:
-            return default
-    return current
+    if not update.effective_user:
+        logger.warning("ACCIDENT_HANDLER: start_accident_report sin effective_user.")
+        return ConversationHandler.END # No se puede proceder sin usuario.
 
-def _to_str_for_escape(value, default_str='N/D'):
-    """Convierte un valor a string de forma segura para html.escape."""
-    if isinstance(value, dict):
-        # Si es un dict, y esperamos un valor textual, intentamos con claves comunes.
-        # Para 'gravedad_victima', el texto está en 'nivel_gravedad'.
-        # Para 'tipo_accidente', el texto está en 'nombre'.
-        # Para 'condicion_victima', el texto está en 'rol_victima'.
-        # Para 'ubicacion', el texto relevante podría ser 'complemento' o 'barrio.nombre'.
-        # Esta función se vuelve más específica según el campo.
-        return str(value.get('nivel_gravedad', value.get('nombre', value.get('rol_victima', str(value)))))
-    elif value is None:
-        return default_str
-    elif not isinstance(value, str):
-        return str(value)
-    return value
-
-async def report_accident_start(update: Update, context: CallbackContext) -> int:
-    user = update.effective_user
-    logger.info(f"Usuario {user.id} ({user.username}) inició el reporte de accidente con /reportar_accidente.")
-    await update.message.reply_text(
-        "¡Entendido! Vamos a reportar un accidente.\n"
-        "Por favor, describe brevemente qué ocurrió (ej: Choque entre moto y carro, peatón atropellado)."
-    )
-    return DESCRIPTION
-
-async def get_description(update: Update, context: CallbackContext) -> int:
-    user_input = update.message.text
-    # Para el reporte, la descripción es el texto que el usuario ingresa.
-    # Este será el campo 'descripcion' que se envía a la API.
-    # Tu API backend deberá decidir si este texto va al campo 'complemento' de la tabla 'ubicacion'
-    # o si tienes un campo de descripción general en tu modelo de Accidente en el backend.
-    context.user_data['descripcion_reportada'] = user_input 
-    logger.info(f"Descripción reportada por {update.effective_user.id}: {user_input}")
-    await update.message.reply_text(
-        "Gracias. Ahora, por favor, envía la latitud del lugar del accidente.\n"
-        "Puedes obtenerla de Google Maps. Ejemplo: <code>10.987</code>",
-        parse_mode=ParseMode.HTML
-    )
-    return LATITUDE
-
-async def get_latitude(update: Update, context: CallbackContext) -> int:
-    user_input = update.message.text
-    try:
-        latitude = float(user_input)
-        context.user_data['latitude'] = latitude
-        logger.info(f"Latitud recibida de {update.effective_user.id}: {latitude}")
-        await update.message.reply_text(
-            "Latitud guardada. Ahora, por favor, envía la longitud.\n"
-            "Ejemplo: <code>-74.789</code>",
-            parse_mode=ParseMode.HTML
-        )
-        return LONGITUDE
-    except ValueError:
-        logger.warning(f"Entrada de latitud inválida de {update.effective_user.id}: {user_input}")
-        await update.message.reply_text(
-            "Latitud no válida. Inténtalo de nuevo. Ejemplo: <code>10.987</code>",
-            parse_mode=ParseMode.HTML
-        )
-        return LATITUDE
-
-async def get_longitude(update: Update, context: CallbackContext) -> int:
-    user_input = update.message.text
-    try:
-        longitude = float(user_input)
-        context.user_data['longitude'] = longitude
-        logger.info(f"Longitud recibida de {update.effective_user.id}: {longitude}")
-        # En tu BD, 'gravedad_victima_id' es un FK. El usuario seleccionará el texto.
-        # El backend deberá mapear "Leve", "Moderado", "Grave" al ID correspondiente.
-        reply_keyboard = [['Leve', 'Moderado', 'Grave']] 
-        await update.message.reply_text(
-            "Longitud guardada. Selecciona la gravedad del accidente para la víctima principal:",
-            reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, resize_keyboard=True)
-        )
-        return GRAVITY
-    except ValueError:
-        logger.warning(f"Entrada de longitud inválida de {update.effective_user.id}: {user_input}")
-        await update.message.reply_text(
-            "Longitud no válida. Inténtalo de nuevo. Ejemplo: <code>-74.789</code>",
-            parse_mode=ParseMode.HTML
-        )
-        return LONGITUDE
-
-async def get_gravity(update: Update, context: CallbackContext) -> int:
-    user_input = update.message.text # Será "Leve", "Moderado", o "Grave"
-    if user_input not in ['Leve', 'Moderado', 'Grave']:
-        logger.warning(f"Entrada de gravedad inválida de {update.effective_user.id}: {user_input}")
-        await update.message.reply_text("Selecciona una opción válida para la gravedad.")
-        return GRAVITY
-        
-    context.user_data['gravedad_reportada'] = user_input
-    logger.info(f"Gravedad reportada por {update.effective_user.id}: {user_input}")
+    user_id = update.effective_user.id
+    user_name = update.effective_user.full_name or update.effective_user.username
+    logger.info(f"ACCIDENT_HANDLER: Usuario {user_id} ({user_name}) inició reporte de accidente con /reportar.")
     
-    desc_escaped = html.escape(context.user_data['descripcion_reportada'])
-    gravity_escaped = html.escape(context.user_data['gravedad_reportada'])
+    # Limpiar datos de reportes anteriores de `user_data` para este flujo específico.
+    context.user_data.pop('current_accident_report_data', None)
     
-    summary = (
-        "<b>Resumen del Reporte:</b>\n"
-        f"Descripción: {desc_escaped}\n"
-        f"Latitud: {context.user_data['latitude']}\n"
-        f"Longitud: {context.user_data['longitude']}\n"
-        f"Gravedad: {gravity_escaped}\n\n"
-        "¿Es correcta esta información? (Sí/No)"
-    )
-    reply_keyboard = [['Sí', 'No']]
-    await update.message.reply_text(
-        summary,
-        parse_mode=ParseMode.HTML,
-        reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, resize_keyboard=True)
-    )
-    return CONFIRMATION
+    # Verificar si hay entidades pre-extraídas por el LLM (desde general_handler).
+    # Estas entidades se habrían guardado en `context.user_data['llm_pre_extracted_report_entities']`.
+    pre_extracted_entities = context.user_data.pop('llm_pre_extracted_report_entities', None)
+    
+    current_report_data = {} # Iniciar un nuevo diccionario para este reporte.
 
-async def confirm_report(update: Update, context: CallbackContext) -> int:
-    user_input = update.message.text.lower()
-    user = update.effective_user
-    if user_input == 'sí' or user_input == 'si':
-        logger.info(f"Usuario {user.id} confirmó el reporte.")
-        await update.message.reply_text("Confirmado. Enviando reporte...", reply_markup=ReplyKeyboardRemove())
+    if pre_extracted_entities and isinstance(pre_extracted_entities, dict):
+        logger.info(f"ACCIDENT_HANDLER: Usando entidades pre-extraídas por LLM para el reporte: {pre_extracted_entities}")
+        # Mapear las entidades del LLM a los campos que este ConversationHandler espera.
+        # Es importante que los nombres de las claves coincidan o se adapten.
+        current_report_data['descripcion_llm'] = pre_extracted_entities.get('descripcion')
+        current_report_data['ubicacion_texto_llm'] = pre_extracted_entities.get('ubicacion')
+        # Parsear fecha y hora si el LLM las extrajo es más complejo y se podría hacer aquí
+        # o dejar que el flujo normal del ConversationHandler las pida.
+        # Ejemplo: current_report_data['fecha_hora_llm'] = parse_datetime_from_llm_entities(...)
+    
+    context.user_data['current_accident_report_data'] = current_report_data # Guardar en user_data.
+
+    # Lógica para decidir el primer paso basado en si hay entidades pre-extraídas.
+    if current_report_data.get('descripcion_llm'):
+        # Si el LLM ya extrajo una descripción.
+        await update.message.reply_text(
+            f"He entendido que quieres reportar un accidente y mencionaste algo sobre: \"{current_report_data['descripcion_llm']}\".\n\n"
+            "Para continuar, por favor, proporciona la **ubicación exacta** del accidente (ej: Calle 72 con Carrera 46, Barrio El Prado)."
+            "\nTambién puedes compartir tu ubicación actual usando el botón de 'Compartir Ubicación' (ícono del clip 📎 en Telegram).",
+            reply_markup=ReplyKeyboardRemove() # Quitar teclados anteriores.
+        )
+        return REPORTING_ACCIDENT_LOCATION # Saltar a pedir ubicación.
+    else:
+        # Si no hay descripción pre-extraída, empezar pidiéndola.
+        await update.message.reply_text(
+            "Entendido. Vamos a reportar un accidente paso a paso.\n\n"
+            "Primero, por favor, **describe brevemente qué sucedió** en el accidente.",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return REPORTING_ACCIDENT_DESCRIPTION # Estado inicial: pedir descripción.
+
+
+async def accident_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Guarda la descripción del accidente y pide la ubicación."""
+    description_text = update.message.text.strip()
+    if not description_text: # Validar que no esté vacío.
+        await update.message.reply_text("La descripción no puede estar vacía. Por favor, describe qué sucedió o usa /cancelar.")
+        return REPORTING_ACCIDENT_DESCRIPTION
+
+    report_data = context.user_data.get('current_accident_report_data', {})
+    report_data['descripcion_usuario'] = description_text # Guardar descripción del usuario.
+    context.user_data['current_accident_report_data'] = report_data
+    logger.info(f"ACCIDENT_HANDLER: Descripción del accidente: '{description_text}' para user_id {update.effective_user.id}")
+
+    # Verificar si la ubicación ya fue pre-extraída por LLM.
+    pre_extracted_location_text = report_data.get('ubicacion_texto_llm')
+    if pre_extracted_location_text:
+        await update.message.reply_text(
+            f"Gracias por la descripción.\n"
+            f"El asistente entendió inicialmente que la ubicación podría ser \"{pre_extracted_location_text}\".\n"
+            "¿Es esta la **ubicación correcta**? Puedes confirmarla escribiéndola de nuevo, corregirla, o compartir tu ubicación actual usando el botón de 'Compartir Ubicación' (ícono del clip 📎).",
+        )
+    else:
+        await update.message.reply_text(
+            f"Entendido. Descripción registrada.\n\n"
+            "Ahora, por favor, indica la **ubicación exacta** del accidente (ej: Calle 72 con Carrera 46, Barrio Recreo)."
+            "\nTambién puedes compartir tu ubicación actual usando el botón de 'Compartir Ubicación' (ícono del clip 📎).",
+        )
+    return REPORTING_ACCIDENT_LOCATION # Siguiente estado: pedir ubicación.
+
+
+async def accident_location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Guarda la ubicación (texto o coordenadas de Telegram) y pide la elección de fecha/hora."""
+    user_telegram_location = update.message.location # Objeto Location si el usuario comparte ubicación.
+    user_text_location = update.message.text.strip() if update.message.text else None # Texto ingresado.
+    
+    report_data = context.user_data.get('current_accident_report_data', {})
+    location_display_text = "No especificada"
+
+    if user_telegram_location:
+        report_data['latitud_telegram'] = user_telegram_location.latitude
+        report_data['longitud_telegram'] = user_telegram_location.longitude
+        # Podrías intentar obtener una dirección con geocodificación inversa aquí si lo deseas:
+        # report_data['direccion_geocodificada'] = await geocode_reverse(user_telegram_location.latitude, user_telegram_location.longitude)
+        location_display_text = f"coordenadas (Lat: {user_telegram_location.latitude:.5f}, Lon: {user_telegram_location.longitude:.5f})"
+        report_data['ubicacion_tipo_entrada'] = "coordenadas_telegram"
+        logger.info(f"ACCIDENT_HANDLER: Ubicación del accidente (coordenadas Telegram): {location_display_text} para user_id {update.effective_user.id}")
+    elif user_text_location:
+        report_data['direccion_texto_usuario'] = user_text_location
+        location_display_text = user_text_location
+        report_data['ubicacion_tipo_entrada'] = "texto_usuario"
+        # Limpiar lat/lon si previamente se habían establecido por error y ahora se da texto.
+        report_data.pop('latitud_telegram', None)
+        report_data.pop('longitud_telegram', None)
+        logger.info(f"ACCIDENT_HANDLER: Ubicación del accidente (texto usuario): '{location_display_text}' para user_id {update.effective_user.id}")
+    else: 
+        # Esto no debería ocurrir si los filtros del MessageHandler son correctos (texto O ubicación).
+        await update.message.reply_text("No pude obtener la información de ubicación. Por favor, inténtalo de nuevo escribiendo la dirección o compartiendo tu ubicación, o usa /cancelar.")
+        return REPORTING_ACCIDENT_LOCATION # Permanecer en el mismo estado.
+
+    report_data['ubicacion_procesada_para_mostrar'] = location_display_text # Guardar lo que se procesó.
+    context.user_data['current_accident_report_data'] = report_data # Actualizar user_data.
+
+    # Teclado con opciones para la fecha/hora.
+    datetime_choice_keyboard = [
+        [KeyboardButton("Sí, el accidente acaba de ocurrir")],
+        [KeyboardButton("No, el accidente fue antes")]
+    ]
+    await update.message.reply_text(
+        f"Ubicación registrada: \"{location_display_text}\".\n\n"
+        "Ahora, sobre la **fecha y hora del accidente**: ¿Ocurrió justo ahora o en un momento anterior?",
+        reply_markup=ReplyKeyboardMarkup(datetime_choice_keyboard, one_time_keyboard=True, resize_keyboard=True, input_field_placeholder="Elige una opción de fecha/hora"),
+    )
+    return REPORTING_ACCIDENT_DATETIME_CHOICE # Siguiente estado.
+
+
+async def accident_datetime_choice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la elección de si el accidente fue "ahora" o "antes", y avanza al siguiente paso."""
+    user_choice_text = update.message.text
+    report_data = context.user_data.get('current_accident_report_data', {})
+
+    if "Sí, el accidente acaba de ocurrir" in user_choice_text:
+        # Registrar la hora actual en UTC, luego se puede localizar o formatear.
+        # Es mejor guardar en UTC y convertir para mostrar o para la API si requiere zona específica.
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        report_data['fecha_hora_ocurrencia_iso'] = now_utc.isoformat() # Guardar en formato ISO 8601 (UTC por defecto).
+        logger.info(f"ACCIDENT_HANDLER: Fecha/hora del accidente: AHORA ({report_data['fecha_hora_ocurrencia_iso']}) para user_id {update.effective_user.id}")
+        context.user_data['current_accident_report_data'] = report_data
+        return await ask_for_gravity_handler(update, context) # Avanzar a preguntar gravedad.
+    elif "No, el accidente fue antes" in user_choice_text:
+        await update.message.reply_text(
+            "Entendido.\nPor favor, indica la **fecha y hora exactas** del accidente.\n"
+            "Usa el formato: DD/MM/AAAA HH:MM (ejemplo: 21/05/2024 14:30).",
+            reply_markup=ReplyKeyboardRemove(), # Quitar teclado anterior.
+        )
+        return REPORTING_ACCIDENT_DATETIME_SPECIFIC # Estado para ingresar fecha/hora específica.
+    else: # Respuesta inesperada.
+        await update.message.reply_text("Por favor, elige una de las opciones del teclado: 'Sí, el accidente acaba de ocurrir' o 'No, el accidente fue antes'.")
+        return REPORTING_ACCIDENT_DATETIME_CHOICE # Permanecer en el mismo estado.
+
+
+async def accident_datetime_specific_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Guarda la fecha y hora específica ingresada por el usuario."""
+    datetime_input_text = update.message.text.strip()
+    report_data = context.user_data.get('current_accident_report_data', {})
+    
+    parsed_datetime_object = None
+    # Intentar parsear formatos comunes. Puedes hacer esto más robusto o usar librerías como `dateutil`.
+    formats_to_try = ["%d/%m/%Y %H:%M", "%d-%m-%Y %H:%M", "%Y-%m-%d %H:%M"] # Añade más formatos si es necesario.
+    for fmt in formats_to_try:
+        try:
+            parsed_datetime_object = datetime.datetime.strptime(datetime_input_text, fmt)
+            break # Si se parsea correctamente, salir del bucle.
+        except ValueError:
+            continue # Intentar el siguiente formato.
+            
+    if not parsed_datetime_object:
+        logger.warning(f"ACCIDENT_HANDLER: Formato de fecha/hora inválido: '{datetime_input_text}' de user_id {update.effective_user.id}")
+        await update.message.reply_text(
+            "El formato de fecha/hora que ingresaste no es reconocido. 🤔\n"
+            "Por favor, usa DD/MM/AAAA HH:MM (ejemplo: 21/05/2024 14:30).\n"
+            "Si te equivocaste, puedes usar /cancelar y luego /reportar de nuevo para elegir la opción 'Sí, el accidente acaba de ocurrir'."
+        )
+        return REPORTING_ACCIDENT_DATETIME_SPECIFIC # Permanecer en este estado para que el usuario reintente.
+    
+    # Asigna la zona horaria de Colombia al objeto datetime si es "naive" (no tiene tzinfo).
+    # Si ya tiene tzinfo, es mejor convertirlo explícitamente a la zona horaria de Colombia.
+    if parsed_datetime_object.tzinfo is None:
+        datetime_colombia_aware = COLOMBIA_TZ.localize(parsed_datetime_object)
+    else: # Si ya tiene timezone, convertir a la de Colombia.
+        datetime_colombia_aware = parsed_datetime_object.astimezone(COLOMBIA_TZ)
         
-        # El `api_client.report_accident` espera: descripcion, latitud, longitud, gravedad (string), usuario_id
-        # Tu backend deberá mapear la gravedad "Leve", "Moderado", "Grave" al ID correspondiente de `accidente_gravedadvictima`
-        # y la `descripcion` al campo `complemento` de `accidente_ubicacion` o a un campo de descripción general.
-        report_data = {
-            "descripcion": context.user_data['descripcion_reportada'], 
-            "latitud": context.user_data['latitude'],
-            "longitud": context.user_data['longitude'],
-            "gravedad": context.user_data['gravedad_reportada'], # Enviar el string, backend lo mapea a ID
-            "usuario_id": user.id 
+    # Guardar en formato ISO 8601. Este formato incluye la información de timezone.
+    report_data['fecha_hora_ocurrencia_iso'] = datetime_colombia_aware.isoformat()
+    logger.info(f"ACCIDENT_HANDLER: Fecha/hora específica del accidente: {report_data['fecha_hora_ocurrencia_iso']} para user_id {update.effective_user.id}")
+    context.user_data['current_accident_report_data'] = report_data
+    return await ask_for_gravity_handler(update, context) # Avanzar a preguntar gravedad.
+
+
+async def ask_for_gravity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Pregunta por la gravedad estimada del accidente al usuario."""
+    # Opciones de gravedad que se presentarán al usuario.
+    # Estas deben ser claras y fáciles de entender.
+    gravity_options_keyboard = [
+        [KeyboardButton("LEVE (Solo daños materiales, sin heridos)")], 
+        [KeyboardButton("MODERADA (Heridos leves, atención médica menor)")], 
+        [KeyboardButton("GRAVE (Heridos graves, hospitalización o víctimas fatales)")]
+    ]
+    await update.message.reply_text(
+        "Entendido. Ahora, por favor, indica cuál consideras que fue la **gravedad estimada** del accidente:",
+        reply_markup=ReplyKeyboardMarkup(
+            gravity_options_keyboard,
+            one_time_keyboard=True, # El teclado desaparece después de una selección.
+            resize_keyboard=True, # Ajusta el tamaño del teclado.
+            input_field_placeholder="Selecciona la gravedad del accidente"
+        ),
+    )
+    return REPORTING_ACCIDENT_GRAVEDAD # Siguiente estado: esperar la respuesta de gravedad.
+
+
+async def accident_gravity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Guarda la gravedad estimada y avanza para mostrar la confirmación final."""
+    gravity_choice_text = update.message.text
+    report_data = context.user_data.get('current_accident_report_data', {})
+    
+    # Mapear el texto amigable de la opción elegida por el usuario a los valores que espera tu API
+    # (ej. "LEVE", "MODERADA", "GRAVE").
+    # Asegúrate que estos valores coincidan con los Enum o tipos permitidos en tu backend.
+    gravity_api_value = "LEVE" # Valor por defecto si no se reconoce la opción.
+    if "LEVE" in gravity_choice_text.upper():
+        gravity_api_value = "LEVE"
+    elif "MODERADA" in gravity_choice_text.upper():
+        gravity_api_value = "MODERADA"
+    elif "GRAVE" in gravity_choice_text.upper() or "FATAL" in gravity_choice_text.upper():
+        # Considera si "FATAL" debe ser un valor separado en tu API o si se agrupa con "GRAVE".
+        gravity_api_value = "GRAVE" 
+    else:
+        logger.warning(f"ACCIDENT_HANDLER: Gravedad no reconocida claramente de: '{gravity_choice_text}' para user_id {update.effective_user.id}. Usando LEVE por defecto.")
+        # Podrías pedir de nuevo si no es claro, pero por ahora asignamos un default.
+        await update.message.reply_text("No reconocí la opción de gravedad, se asignará 'LEVE'. Puedes corregir al final si es necesario.")
+
+
+    report_data['gravedad_estimada_api'] = gravity_api_value
+    report_data['gravedad_estimada_display'] = gravity_choice_text # Guardar también lo que el usuario vio/eligió.
+    logger.info(f"ACCIDENT_HANDLER: Gravedad estimada (API value): {gravity_api_value} para user_id {update.effective_user.id}")
+    context.user_data['current_accident_report_data'] = report_data
+    
+    return await show_final_confirmation_handler(update, context) # Mostrar resumen para confirmar.
+
+
+async def show_final_confirmation_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Muestra toda la información recopilada y pide confirmación final al usuario antes de enviar a la API."""
+    report_data = context.user_data.get('current_accident_report_data', {})
+    
+    # Validar que se haya recopilado información esencial.
+    if not report_data or not report_data.get("descripcion_usuario"): 
+        await update.message.reply_text(
+            "Parece que no hemos recopilado suficiente información (falta la descripción).\n"
+            "Por favor, inicia el reporte de nuevo con /reportar.", 
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return ConversationHandler.END # Terminar la conversación si faltan datos clave.
+
+    # --- Formatear los datos para una presentación clara al usuario ---
+    desc_display = report_data.get('descripcion_usuario', '_No especificada_')
+    
+    ubicacion_display = report_data.get('ubicacion_procesada_para_mostrar', '_No especificada_')
+    
+    fecha_hora_display = "_No especificada_"
+    if 'fecha_hora_ocurrencia_iso' in report_data and report_data['fecha_hora_ocurrencia_iso']:
+        try:
+            # Convertir de ISO UTC a la zona horaria de Colombia para mostrar.
+            dt_utc = datetime.datetime.fromisoformat(report_data['fecha_hora_ocurrencia_iso'])
+            dt_colombia = dt_utc.astimezone(COLOMBIA_TZ)
+            # Formato amigable para Colombia (ej: 21 de Mayo de 2024 a las 02:30 PM (COT))
+            fecha_hora_display = dt_colombia.strftime("%d de %B de %Y a las %I:%M %p (%Z)") 
+        except (ValueError, TypeError): # Si el string no es ISO o es None.
+            fecha_hora_display = str(report_data['fecha_hora_ocurrencia_iso']) # Mostrar como está.
+
+    gravedad_display = report_data.get('gravedad_estimada_display', '_No especificada_')
+
+    # Construir el mensaje de resumen. Usar Markdown para formato.
+    summary_message_parts = [
+        "📝 *Resumen del Reporte de Accidente*",
+        "Por favor, verifica cuidadosamente que toda la información sea correcta antes de enviar:\n",
+        f"*Descripción*: {desc_display}",
+        f"*Ubicación*: {ubicacion_display}",
+        f"*Fecha y Hora*: {fecha_hora_display}",
+        f"*Gravedad Estimada*: {gravedad_display}\n",
+        "¿Es correcta esta información y deseas enviar el reporte ahora?"
+    ]
+    
+    confirmation_keyboard_options = [
+        [KeyboardButton("✅ Sí, enviar reporte ahora")],
+        [KeyboardButton("❌ No, cancelar y corregir")]
+    ]
+    await update.message.reply_text(
+        "\n".join(summary_message_parts),
+        reply_markup=ReplyKeyboardMarkup(
+            confirmation_keyboard_options,
+            one_time_keyboard=True,
+            resize_keyboard=True,
+            input_field_placeholder="Confirma o cancela el reporte"
+        ),
+        parse_mode='Markdown' # Habilitar Markdown para negritas, etc.
+    )
+    return REPORTING_ACCIDENT_CONFIRMATION # Estado final de confirmación.
+
+
+async def accident_final_confirmation_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    Procesa la confirmación final del usuario.
+    Si confirma, envía el reporte a la API. Si no, permite cancelar/corregir (actualmente solo cancela).
+    """
+    user_final_choice = update.message.text
+    report_data = context.user_data.get('current_accident_report_data', {})
+
+    if "✅ Sí, enviar reporte ahora" in user_final_choice:
+        if not report_data: # Doble chequeo de seguridad.
+            await update.message.reply_text("No hay datos de reporte para enviar. Por favor, usa /reportar de nuevo.", reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
+
+        # --- Preparar el payload final para enviar a la API ---
+        # Asegúrate que los nombres de los campos coincidan con tu esquema Pydantic `AccidenteCreate` del backend.
+        api_payload = {
+            "descripcion": report_data.get("descripcion_usuario"),
+            "fecha_hora_ocurrencia": report_data.get("fecha_hora_ocurrencia_iso"), # Debe ser ISO 8601 UTC.
+            "latitud": report_data.get("latitud_telegram"), # Puede ser None si se dio dirección textual.
+            "longitud": report_data.get("longitud_telegram"), # Puede ser None.
+            "direccion_aproximada": report_data.get("direccion_texto_usuario", report_data.get("ubicacion_procesada_para_mostrar")),
+            "ciudad": "Barranquilla", # Puedes hacerlo configurable o detectarlo si tu app es multi-ciudad.
+            "departamento": "Atlántico", # Configurable.
+            "gravedad_estimada": report_data.get("gravedad_estimada_api", "LEVE"), # Default si no se especificó.
+            "reportado_por_telegram_user_id": str(update.effective_user.id),
+            "reportado_por_nombre": update.effective_user.full_name or update.effective_user.username,
+            # Añade otros campos que tu API requiera (ej. tipo_vehiculo_implicado, causa_probable, etc. si los recolectas).
         }
         
-        response = api_client.report_accident(**report_data)
+        # Limpiar el payload de claves con valor None si tu API no los espera o los maneja mal.
+        # Pydantic usualmente maneja bien los `Optional[type] = None` no enviados.
+        payload_cleaned_for_api = {k: v for k, v in api_payload.items() if v is not None}
 
-        if response and not (isinstance(response, dict) and response.get("error")):
-            # Asumimos que la respuesta de éxito de la API para POST contiene el ID del nuevo accidente
-            # y otros campos que tu API decida devolver.
-            # Si la API devuelve el objeto completo del accidente creado, podrías mostrar más detalles.
-            # Por ahora, solo el ID.
-            api_response_id = "N/A"
-            if isinstance(response, dict): # Si la API devuelve un dict
-                api_response_id = response.get('id', 'N/A')
+        logger.info(f"ACCIDENT_HANDLER: Enviando reporte final a la API: {payload_cleaned_for_api} para user_id {update.effective_user.id}")
+        
+        # Mostrar un mensaje de "procesando..." al usuario.
+        processing_msg = await update.message.reply_text("Procesando tu reporte, un momento por favor... 📡", reply_markup=ReplyKeyboardRemove())
+
+        # Llamada a tu cliente API para enviar el reporte.
+        api_call_response = await report_accident_api(payload_cleaned_for_api) 
+
+        # --- Manejar la respuesta de la API ---
+        if api_call_response and not api_call_response.get("error") and api_call_response.get("id_accidente"): 
+            # Éxito: la API devolvió un ID de accidente y no marcó error.
+            # (Ajusta "id_accidente" al nombre del campo ID que tu API realmente devuelve).
+            success_msg_text = (
+                f"¡Excelente, {update.effective_user.first_name}! 👍\n"
+                f"Tu reporte de accidente ha sido enviado y registrado con éxito.\n"
+                f"El ID de tu reporte es: *{api_call_response.get('id_accidente')}*\n\n"
+                "Gracias por tu colaboración para mejorar la seguridad vial en Barranquilla."
+            )
+            await context.bot.edit_message_text( # Editar el mensaje "procesando..."
+                chat_id=update.effective_chat.id,
+                message_id=processing_msg.message_id,
+                text=success_msg_text,
+                parse_mode='Markdown'
+            )
+            logger.info(f"ACCIDENT_HANDLER: Reporte enviado exitosamente a la API. ID: {api_call_response.get('id_accidente')} para user_id {update.effective_user.id}")
+        else:
+            # Fallo: la API marcó error o no devolvió la estructura esperada.
+            error_detail_from_api = "No se pudo procesar el reporte en el servidor."
+            if isinstance(api_call_response, dict) and api_call_response.get("detail"):
+                 error_detail_from_api = api_call_response.get("detail")
             
-            await update.message.reply_text(f"¡Accidente reportado exitosamente! ID del reporte: {api_response_id}\n"
-                                            "Gracias por tu colaboración.")
-            logger.info(f"Accidente reportado exitosamente por {user.id}. Respuesta API: {response}")
-        else:
-            error_detail = "Respuesta inesperada de la API."
-            if isinstance(response, dict) and response.get("error"):
-                 error_detail = response.get("detail", "No se pudo obtener detalle del error.")
-            elif response is None:
-                 error_detail = "La API no devolvió una respuesta válida (JSON)."
-            await update.message.reply_text(f"Hubo un error al reportar el accidente: {error_detail}\n"
-                                            "Por favor, inténtalo de nuevo más tarde.")
-            logger.error(f"Error al reportar accidente para {user.id}. Detalles: {response}")
-            
-        context.user_data.clear()
-        return ConversationHandler.END
-    elif user_input == 'no':
-        logger.info(f"Usuario {user.id} canceló el reporte en la confirmación.")
-        await update.message.reply_text("Reporte cancelado.", reply_markup=ReplyKeyboardRemove())
-        context.user_data.clear()
-        return ConversationHandler.END
-    else:
-        await update.message.reply_text("Por favor, responde 'Sí' o 'No'.")
-        return CONFIRMATION
+            error_msg_text = (
+                f"Lo siento mucho, {update.effective_user.first_name}, pero parece que hubo un problema al enviar tu reporte al sistema:\n"
+                f"_{error_detail_from_api}_\n\n"
+                "Por favor, intenta de nuevo más tarde. Si el problema persiste, puedes contactar a soporte (si hay un canal definido)."
+            )
+            await context.bot.edit_message_text(
+                chat_id=update.effective_chat.id,
+                message_id=processing_msg.message_id,
+                text=error_msg_text,
+                parse_mode='Markdown'
+            )
+            logger.error(f"ACCIDENT_HANDLER: Error al enviar reporte a la API: {api_call_response} para user_id {update.effective_user.id}")
 
-async def cancel_report(update: Update, context: CallbackContext) -> int:
-    user = update.effective_user
-    logger.info(f"Usuario {user.id} ({user.username}) canceló con /cancelar.")
-    await update.message.reply_text("Proceso de reporte cancelado.", reply_markup=ReplyKeyboardRemove())
-    context.user_data.clear()
-    return ConversationHandler.END
-
-async def view_accidents(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    logger.info(f"Usuario {user.id} ({user.username}) solicitó /ver_accidentes con args: {context.args}")
-    await update.message.reply_chat_action('typing')
+        # Limpiar datos del reporte de `user_data` después de intentar enviar.
+        context.user_data.pop('current_accident_report_data', None) 
+        return ConversationHandler.END # Terminar la conversación.
     
-    default_limit = 3
-    display_limit = default_limit
-    max_limit = 10 
-
-    if context.args:
-        try:
-            requested_limit = int(context.args[0])
-            if 0 < requested_limit <= max_limit: display_limit = requested_limit
-            elif requested_limit > max_limit:
-                await update.message.reply_text(f"Solo puedo mostrar hasta {max_limit} accidentes. Mostrando {max_limit}.")
-                display_limit = max_limit
-            else: await update.message.reply_text(f"Número inválido. Mostrando los {default_limit} más recientes.")
-        except ValueError: await update.message.reply_text(f"No entendí el número. Mostrando los {default_limit} más recientes.")
-        except IndexError: pass
-    
-    accidents_response = api_client.get_accidents(limit=display_limit)
-
-    if accidents_response is None:
-        logger.error("Error al obtener accidentes: Respuesta API no JSON o vacía.")
-        await update.message.reply_text("No pude obtener la lista de accidentes: Respuesta inválida de la API.")
-    elif isinstance(accidents_response, dict) and accidents_response.get("error"):
-        error_detail = accidents_response.get("detail", "Error desconocido")
-        logger.error(f"Error al obtener accidentes: {error_detail}")
-        await update.message.reply_text(f"No pude obtener la lista de accidentes: {error_detail}")
-    elif isinstance(accidents_response, list):
-        accidents = accidents_response
-        if accidents:
-            message_parts = [f"<b>Mostrando los últimos {len(accidents)} accidentes reportados (de {display_limit} solicitados):</b>\n"]
-            for acc_data in accidents: # acc_data es un diccionario por cada accidente
-                # Asumimos que tu API ahora devuelve los nombres y no solo los IDs
-                # Si devuelve objetos anidados, ajusta los .get() con _get_nested_value
-                
-                # Para la descripción, usamos 'complemento' de 'ubicacion' si existe, sino "N/D"
-                # Si tu API devuelve 'descripcion' directamente en el objeto acc_data, úsalo.
-                descripcion_val = _get_nested_value(acc_data, ['ubicacion', 'complemento'], 'Sin descripción')
-                if descripcion_val == 'Sin descripción' and 'descripcion' in acc_data : # Fallback si hay un campo 'descripcion' directo
-                    descripcion_val = acc_data.get('descripcion', 'Sin descripción')
-                desc_escaped = html.escape(_to_str_for_escape(descripcion_val, 'Sin descripción')[:100])
-                
-                fecha_val = acc_data.get('fecha', 'Fecha desconocida') # De la tabla accidente_accidente
-                fecha_escaped = html.escape(_to_str_for_escape(fecha_val))
-                
-                # Para gravedad, esperamos que la API devuelva el texto (ej. "Herido")
-                # Si devuelve el objeto anidado: gravedad_val = _get_nested_value(acc_data, ['gravedad_victima', 'nivel_gravedad'], 'N/D')
-                gravedad_val = acc_data.get('gravedad', _get_nested_value(acc_data, ['gravedad_victima', 'nivel_gravedad'], 'N/D'))
-                gravedad_escaped = html.escape(_to_str_for_escape(gravedad_val))
-                
-                lat = _get_nested_value(acc_data, ['ubicacion', 'latitud'], 0)
-                lon = _get_nested_value(acc_data, ['ubicacion', 'longitud'], 0)
-
-                message_parts.append(
-                    f"🆔 <b>ID:</b> {acc_data.get('id', 'N/A')}\n"
-                    f"📝 Desc: {desc_escaped}...\n"
-                    f"📅 Fecha: {fecha_escaped}\n"
-                    f"🚦 Gravedad: {gravedad_escaped}\n"
-                    f"<a href='https://www.google.com/maps?q={lat},{lon}'>Ver en Mapa</a>\n" # Enlace de Google Maps estándar
-                    f"Detalles: /detalle_accidente {acc_data.get('id', '')}\n"
-                    "--------------------"
-                )
-            final_message = "\n".join(message_parts)
-            if len(final_message) > 4096:
-                await update.message.reply_text(f"Se encontraron {len(accidents)} accidentes, pero el mensaje es demasiado largo. Intenta solicitar menos o verlos de uno en uno.")
-                logger.warning("El mensaje de /ver_accidentes excedió el límite de Telegram.")
-            else:
-                await update.message.reply_text(final_message, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-        else:
-            await update.message.reply_text(f"No se encontraron accidentes para los {display_limit} más recientes solicitados.")
-    else:
-        logger.error(f"Respuesta API inesperada para get_accidents: {accidents_response}")
-        await update.message.reply_text("No pude obtener la lista de accidentes (formato de respuesta inesperado).")
-
-async def accident_detail(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not context.args:
-        await update.message.reply_text("Proporciona el ID. Ej: /detalle_accidente <code>123</code>", parse_mode=ParseMode.HTML)
-        return
-    try:
-        accident_id = int(context.args[0])
-    except ValueError:
-        await update.message.reply_text("El ID debe ser un número. Ej: /detalle_accidente <code>123</code>", parse_mode=ParseMode.HTML)
-        return
-
-    logger.info(f"Usuario {user.id} solicitó detalle ID: {accident_id}.")
-    await update.message.reply_chat_action('typing')
-    response = api_client.get_accident_detail(accident_id)
-
-    if response is None:
-        logger.error(f"Error al obtener detalle {accident_id}: Respuesta API no JSON o vacía.")
-        await update.message.reply_text(f"No pude obtener detalles del accidente {accident_id}: Respuesta inválida de la API.")
-    elif isinstance(response, dict) and response.get("error"):
-        error_detail = response.get("detail", "Error desconocido")
-        status_code = response.get("status_code")
-        if status_code == 404:
-            await update.message.reply_text(f"No se encontró accidente con ID {accident_id}.")
-        else:
-            await update.message.reply_text(f"No pude obtener detalles: {error_detail}")
-    elif isinstance(response, dict): # Asumimos que un dict sin "error" es el detalle del accidente
-        acc_data = response
-        
-        # Mapeo de campos desde la estructura de tu BD (o como la API los devuelva)
-        # Descripción: Usaremos ubicacion.complemento o un campo 'descripcion' si existe.
-        descripcion_val = _get_nested_value(acc_data, ['ubicacion', 'complemento'], 'Sin descripción')
-        if descripcion_val == 'Sin descripción' and 'descripcion' in acc_data:
-             descripcion_val = acc_data.get('descripcion', 'Sin descripción')
-        desc_escaped = html.escape(_to_str_for_escape(descripcion_val, 'Sin descripción'))
-        
-        fecha_val = acc_data.get('fecha', 'N/D') # Directo de accidente_accidente
-        fecha_escaped = html.escape(_to_str_for_escape(fecha_val))
-        
-        # Gravedad: Esperamos que la API devuelva el texto, ej., a través de un join.
-        # Si devuelve el objeto anidado: gravedad_val = _get_nested_value(acc_data, ['gravedad_victima', 'nivel_gravedad'], 'N/D')
-        # Si tu API devuelve 'gravedad' directamente como string:
-        gravedad_val = acc_data.get('gravedad', _get_nested_value(acc_data, ['gravedad_victima', 'nivel_gravedad'], 'N/D'))
-        gravedad_escaped = html.escape(_to_str_for_escape(gravedad_val))
-        
-        lat = _get_nested_value(acc_data, ['ubicacion', 'latitud'], 'N/D')
-        lon = _get_nested_value(acc_data, ['ubicacion', 'longitud'], 'N/D')
-        
-        # Otros campos de tu tabla accidente_accidente
-        sexo_victima_val = acc_data.get('sexo_victima', 'N/D')
-        edad_victima_val = acc_data.get('edad_victima', 'N/D')
-        cantidad_victima_val = acc_data.get('cantidad_victima', 'N/D')
-        
-        # Campos de tablas relacionadas (esperando que la API haga el JOIN y devuelva los nombres)
-        tipo_accidente_val = acc_data.get('tipo_accidente', _get_nested_value(acc_data, ['tipo_accidente', 'nombre'], 'N/D'))
-        condicion_victima_val = acc_data.get('condicion_victima', _get_nested_value(acc_data, ['condicion_victima', 'rol_victima'], 'N/D'))
-        barrio_val = _get_nested_value(acc_data, ['ubicacion', 'barrio', 'nombre_barrio'], 'N/D') # Asumiendo que barrio tiene 'nombre_barrio'
-        
-        # Escapar todos los valores textuales
-        sexo_victima_escaped = html.escape(_to_str_for_escape(sexo_victima_val))
-        tipo_accidente_escaped = html.escape(_to_str_for_escape(tipo_accidente_val))
-        condicion_victima_escaped = html.escape(_to_str_for_escape(condicion_victima_val))
-        barrio_escaped = html.escape(_to_str_for_escape(barrio_val))
-        
-        # Usuario ID (ya es un número o string, escapar por si acaso)
-        usuario_id_val = acc_data.get('usuario_id', 'N/D')
-        usuario_id_escaped = html.escape(_to_str_for_escape(usuario_id_val))
-
-        message = (
-            f"<b>Detalles del Accidente ID: {acc_data.get('id', 'N/A')}</b>\n"
-            f"📝 <b>Descripción/Complemento:</b> {desc_escaped}\n"
-            f"📅 <b>Fecha:</b> {fecha_escaped}\n"
-            f"🌍 <b>Ubicación:</b> Lat: {lat}, Lon: {lon}\n"
-            f"🏘️ <b>Barrio:</b> {barrio_escaped}\n"
-            f"🚦 <b>Gravedad Víctima:</b> {gravedad_escaped}\n"
-            f"💥 <b>Tipo Accidente:</b> {tipo_accidente_escaped}\n"
-            f"👤 <b>Condición Víctima:</b> {condicion_victima_escaped}\n"
-            f"🚻 <b>Sexo Víctima:</b> {sexo_victima_escaped}\n"
-            f"🎂 <b>Edad Víctima:</b> {edad_victima_val}\n" # Número, no necesita escape
-            f"👥 <b>Cantidad Víctimas:</b> {cantidad_victima_val}\n" # Número, no necesita escape
-            f"🆔 <b>Reportado por Usuario ID:</b> {usuario_id_escaped}\n"
-            f"<a href='https://www.google.com/maps?q={lat},{lon}'>📍 Ver en Google Maps</a>"
+    elif "❌ No, cancelar y corregir" in user_final_choice:
+        await update.message.reply_text(
+            "Entendido. El reporte ha sido cancelado.\n"
+            "Puedes iniciar uno nuevo con /reportar cuando quieras y proporcionar la información correcta desde el principio.",
+            reply_markup=ReplyKeyboardRemove(),
         )
-        await update.message.reply_text(message, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-    else:
-        logger.error(f"Respuesta API inesperada para get_accident_detail ({accident_id}): {response}")
-        await update.message.reply_text(f"No pude obtener detalles del accidente {accident_id} (formato inesperado).")
+        context.user_data.pop('current_accident_report_data', None)
+        return ConversationHandler.END # Terminar la conversación.
+    else: # Respuesta inesperada en la pantalla de confirmación.
+        await update.message.reply_text("Por favor, elige '✅ Sí, enviar reporte ahora' o '❌ No, cancelar y corregir' usando los botones.")
+        return REPORTING_ACCIDENT_CONFIRMATION # Permanecer en el estado de confirmación.
 
+
+async def cancel_report_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    Manejador para el comando /cancelar. Permite al usuario salir del flujo de reporte
+    de accidente en cualquier punto.
+    """
+    user = update.effective_user
+    logger.info(f"ACCIDENT_HANDLER: Usuario {user.full_name if user else 'Desconocido'} ({user.id if user else 'N/A'}) canceló el reporte de accidente con /cancelar.")
+    
+    # Limpiar cualquier dato de reporte en curso de `user_data`.
+    context.user_data.pop('current_accident_report_data', None)
+    context.user_data.pop('llm_pre_extracted_report_entities', None) # Limpiar también pre-extraídos.
+    
+    await update.message.reply_text(
+        "El proceso de reporte de accidente ha sido cancelado.\n"
+        "Si necesitas algo más, no dudes en preguntar o puedes iniciar de nuevo con /start o /ayuda.",
+        reply_markup=ReplyKeyboardRemove(), # Quitar cualquier teclado custom.
+    )
+    return ConversationHandler.END # Finaliza el ConversationHandler.
+
+# --- Definición del ConversationHandler para el Reporte de Accidentes ---
+report_accident_conversation_handler = ConversationHandler(
+    entry_points=[CommandHandler("reportar", start_accident_report)],
+    states={
+        REPORTING_ACCIDENT_DESCRIPTION: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_description_handler)
+        ],
+        REPORTING_ACCIDENT_LOCATION: [
+            # Acepta tanto mensajes de texto (para direcciones) como objetos de ubicación de Telegram.
+            MessageHandler(filters.LOCATION | (filters.TEXT & ~filters.COMMAND), accident_location_handler),
+        ],
+        REPORTING_ACCIDENT_DATETIME_CHOICE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_datetime_choice_handler)
+        ],
+        REPORTING_ACCIDENT_DATETIME_SPECIFIC: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_datetime_specific_handler)
+        ],
+        REPORTING_ACCIDENT_GRAVEDAD: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_gravity_handler)
+        ],
+        REPORTING_ACCIDENT_CONFIRMATION: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_final_confirmation_handler)
+        ],
+    },
+    fallbacks=[
+        CommandHandler("cancelar", cancel_report_handler),
+        # (Opcional) Un fallback genérico para mensajes inesperados dentro de esta conversación.
+        MessageHandler(filters.ALL, # Captura cualquier tipo de mensaje no manejado por los estados.
+                       lambda update, context: update.message.reply_text(
+                           "Hmm, no esperaba ese tipo de mensaje ahora. 🤔\n"
+                           "Estamos en medio de un reporte de accidente. Por favor, sigue las instrucciones, "
+                           "o usa /cancelar para salir del proceso de reporte."
+                       ))
+    ],
+    # Opcional: Configuración de persistencia si usas almacenamiento para conversaciones (ej. PicklePersistence).
+    # persistent=False, # True si quieres que la conversación sobreviva reinicios del bot (requiere setup).
+    # name="accident_report_conversation", # Nombre para la persistencia.
+
+    # Opcional: Si quieres que al finalizar este ConversationHandler se pase a otro estado "padre" o menú.
+    # map_to_parent={ 
+    #     ConversationHandler.END: SELECTING_ACTION # Si SELECTING_ACTION es un estado de un ConvHandler padre.
+    # } # Si no, ConversationHandler.END simplemente termina este flujo.
+)
