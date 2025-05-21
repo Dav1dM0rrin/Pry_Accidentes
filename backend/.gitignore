@@ -7,6 +7,3 @@ __pycache__
 /app/models/__pycache__
 /app/schemas/__pycache__
 .env
-/venv_chatbot
-chatbot\venv_chatbot
-venv_*/

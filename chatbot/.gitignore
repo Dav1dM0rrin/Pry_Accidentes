@@ -1,2 +1,5 @@
 venv/
 .env
+/venv_chatbot
+chatbot\venv_chatbot
+venv_*/
