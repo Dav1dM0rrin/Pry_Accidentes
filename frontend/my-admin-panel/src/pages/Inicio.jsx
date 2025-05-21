@@ -4,10 +4,11 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios'; 
+import axios from 'axios';
 import Spinner from '../components/Spinner';
 import 'leaflet/dist/leaflet.css';
-import '../styles/inicio.css'; 
+import '../styles/inicio.css';
+import { Send } from 'lucide-react'; // Importar un icono adecuado
 
 // Importaciones de iconos de Leaflet
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -30,14 +31,14 @@ function Inicio() {
   // Estados para datos y filtros
   const [accidents, setAccidents] = useState([]);
   const [barrios, setBarrios] = useState([]);
-  const [tiposAccidente, setTiposAccidente] = useState([]); 
-  const [gravedades, setGravedades] = useState([]);       
+  const [tiposAccidente, setTiposAccidente] = useState([]);
+  const [gravedades, setGravedades] = useState([]);
   const [filters, setFilters] = useState({
     barrio_id: "", fecha_desde: "", fecha_hasta: "", tipo_accidente_id: "", gravedad_id: ""
   });
   // Estados de carga
   const [isLoadingAccidents, setIsLoadingAccidents] = useState(false);
-  const [isLoadingFiltersData, setIsLoadingFiltersData] = useState(false); 
+  const [isLoadingFiltersData, setIsLoadingFiltersData] = useState(false);
 
   // Efecto para el título de la página y verificación de token
   useEffect(() => {
@@ -45,7 +46,7 @@ function Inicio() {
     const token = localStorage.getItem('token');
     if (!token) {
         toast.info("Por favor, inicie sesión.");
-        navigate('/'); 
+        navigate('/');
     }
   }, [navigate]);
 
@@ -58,7 +59,7 @@ function Inicio() {
     if (filters.tipo_accidente_id) params.append("tipo_accidente_id", filters.tipo_accidente_id);
     if (filters.gravedad_id) params.append("gravedad_id", filters.gravedad_id);
     return params.toString();
-  }, [filters]); 
+  }, [filters]);
 
   // Efecto para obtener accidentes cuando cambian los filtros
   useEffect(() => {
@@ -66,7 +67,7 @@ function Inicio() {
       setIsLoadingAccidents(true);
       const queryParams = buildApiParams();
       const apiUrl = `${API_URL}/api/accidentes/mapa?${queryParams}`;
-      console.log(`Fetching accidents from: ${apiUrl}`);
+      console.log(`Obteniendo accidentes desde: ${apiUrl}`); // Mensaje en español
       try {
         const response = await axios.get(apiUrl);
         if (Array.isArray(response.data)) {
@@ -83,7 +84,7 @@ function Inicio() {
       }
     };
     fetchAccidents();
-  }, [buildApiParams]); 
+  }, [buildApiParams]);
 
   // Efecto para obtener datos de los filtros (barrios, tipos, gravedades)
   useEffect(() => {
@@ -112,7 +113,7 @@ function Inicio() {
     const { name, value } = event.target;
     setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
   };
-  
+
   // Filtrar accidentes válidos para el mapa
   const validAccidentsForMap = accidents.filter(acc => {
     const isValid = acc && typeof acc.lat === 'number' && typeof acc.lng === 'number';
@@ -131,10 +132,10 @@ function Inicio() {
   };
 
   return (
-    <div className="inicio-page-container"> 
+    <div className="inicio-page-container">
       {/* Barra de navegación principal */}
-      <div className="main-top-bar"> 
-        <div className="container main-top-bar-content"> 
+      <div className="main-top-bar">
+        <div className="container main-top-bar-content">
           <span className="app-title">Sistema de Accidentes Bquilla</span>
           <button onClick={handleLogout} className="btn btn-logout">
             Cerrar Sesión
@@ -142,20 +143,32 @@ function Inicio() {
         </div>
       </div>
       {/* Barra de navegación secundaria */}
-      <nav className="secondary-nav-bar"> 
-        <div className="container"> 
-          <div className="nav-links-container"> 
+      <nav className="secondary-nav-bar">
+        <div className="container">
+          <div className="nav-links-container">
             <NavLink to="/inicio" className={getNavLinkClass}>Inicio (Mapa)</NavLink>
             <NavLink to="/tablero-accidentes" className={getNavLinkClass}>Tablero PBI</NavLink>
-            <NavLink to="/reportar-accidente" className={getNavLinkClass}>Reportar Accidente</NavLink> 
+            <NavLink to="/reportar-accidente" className={getNavLinkClass}>Reportar Accidente</NavLink>
             <NavLink to="/gestion-usuarios" className={getNavLinkClass}>Gestión Usuarios</NavLink>
             <NavLink to="/lectura-sensor" className={getNavLinkClass}>Lecturas IoT</NavLink>
           </div>
         </div>
       </nav>
 
+      {/* Burbuja de Chatbot de Telegram */}
+      <a
+        href="https://web.telegram.org/k/#@Alertas_QuillaBot" // <--- REEMPLAZA ESTO CON LA URL DE TU BOT DE TELEGRAM
+        target="_blank"
+        rel="noopener noreferrer"
+        className="telegram-fab"
+        aria-label="Chatear con el asistente virtual en Telegram"
+        title="Chatear con el asistente" // Tooltip en español
+      >
+        <Send size={24} />
+      </a>
+
       {/* Contenido principal */}
-      <main className="main-content container"> 
+      <main className="main-content container">
         {/* Sección de filtros */}
         <div className="filter-section-container">
           <h3 className="filter-title">Filtrar Accidentes</h3>
@@ -198,15 +211,15 @@ function Inicio() {
             </div>
           )}
         </div>
-        
+
         {isLoadingAccidents && <Spinner text="Cargando accidentes..." />}
 
         {/* Contenido del mapa y lista de reportes */}
         <div className="content-grid">
           {/* Tarjeta del Mapa */}
-          <div className="map-card"> 
+          <div className="map-card">
             <h2 className="card-title">🗺️ Mapa de Accidentes</h2>
-            {!isLoadingAccidents && ( 
+            {!isLoadingAccidents && (
               <MapContainer center={[10.9878, -74.7889]} zoom={12} style={{ height: "500px", width: "100%", borderRadius: "0.5rem" }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap'/>
                 {validAccidentsForMap.map(accident => ( <Marker key={accident.id} position={[accident.lat, accident.lng]}> <Popup> {accident.descripcion || "Detalles no disponibles"} <br /> <Link to={`/accidente/${accident.id}`} className="popup-link"> Ver Detalles &rarr; </Link> </Popup> </Marker> )) }
@@ -215,28 +228,27 @@ function Inicio() {
           </div>
 
           {/* Tarjeta de Lista de Reportes */}
-          <div className="reports-card"> 
+          <div className="reports-card">
             <h2 className="card-title">Lista de Reportes</h2>
             {!isLoadingAccidents && !accidents.length && (
-              // 1. Mensaje "No hay datos" mejorado
               <div className="no-reports-message">
-                <span className="no-reports-icon">⚠️</span> {/* Puedes usar un SVG o un icono de FontAwesome aquí */}
+                <span className="no-reports-icon">⚠️</span>
                 <p>No se encontraron accidentes con los filtros aplicados.</p>
                 <p>Intenta ajustar los criterios de búsqueda o ampliar el rango de fechas.</p>
               </div>
             )}
             {!isLoadingAccidents && accidents.length > 0 && (
-                <ul className="reports-list">  
-                  {accidents.map(accident => ( 
-                    accident && accident.id ? 
-                    <li key={accident.id} className="report-item"> 
-                      <Link to={`/accidente/${accident.id}`} className="report-item-link"> 
-                        <p>{accident.descripcion || "Sin descripción"}</p> 
-                        <span className="view-details-prompt">Ver Detalles &rarr;</span> 
-                      </Link> 
-                    </li> 
-                    : null 
-                  ))} 
+                <ul className="reports-list">
+                  {accidents.map(accident => (
+                    accident && accident.id ?
+                    <li key={accident.id} className="report-item">
+                      <Link to={`/accidente/${accident.id}`} className="report-item-link">
+                        <p>{accident.descripcion || "Sin descripción"}</p>
+                        <span className="view-details-prompt">Ver Detalles &rarr;</span>
+                      </Link>
+                    </li>
+                    : null
+                  ))}
                 </ul>
             )}
           </div>

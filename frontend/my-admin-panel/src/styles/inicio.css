@@ -452,3 +452,49 @@ body {
   .main-footer { padding: 1rem; font-size: 0.8rem; }
   .filter-section-container { padding: 1rem; }
 }
+
+
+
+
+
+/* --- Burbuja de Chatbot de Telegram (FAB - Floating Action Button) --- */
+.telegram-fab {
+  position: fixed; /* Posición fija en la pantalla */
+  bottom: 25px; /* Distancia desde abajo */
+  right: 25px; /* Distancia desde la derecha */
+  background-color: #0088cc; /* Color azul de Telegram */
+  color: white; /* Color del icono */
+  width: 56px; /* Ancho */
+  height: 56px; /* Alto */
+  border-radius: 50%; /* Para hacerlo circular */
+  display: flex; /* Para centrar el icono */
+  align-items: center; /* Centrar verticalmente */
+  justify-content: center; /* Centrar horizontalmente */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad */
+  z-index: 1050; /* Asegura que esté por encima de la mayoría del contenido */
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Transiciones suaves */
+  text-decoration: none; /* Quitar subrayado del enlace */
+}
+
+.telegram-fab:hover {
+  background-color: #0077b3; /* Azul de Telegram un poco más oscuro al pasar el cursor */
+  transform: scale(1.1); /* Agrandar ligeramente al pasar el cursor */
+}
+
+.telegram-fab svg {
+  fill: white; /* Si usas un icono SVG que necesite relleno */
+}
+
+/* Ajustes responsivos para la burbuja */
+@media (max-width: 768px) {
+  .telegram-fab {
+    width: 50px;
+    height: 50px;
+    bottom: 20px;
+    right: 20px;
+  }
+  .telegram-fab svg {
+    width: 22px; /* Ajustar tamaño del icono si es necesario */
+    height: 22px;
+  }
+}
