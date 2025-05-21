@@ -9,3 +9,4 @@ __pycache__
 .env
 /venv_chatbot
 chatbot\venv_chatbot
+venv_*/
