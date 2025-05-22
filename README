@@ -38,7 +38,8 @@ EJECUTAR CHATBOT
 
 Abrir nueva terminal y ejecutar el siguiente comando
 
-
+cd chatbot
 .\venv_chatbot\Scripts\activate
+cd ..
 python -m chatbot.main_bot
 

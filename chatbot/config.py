@@ -28,7 +28,7 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1")
 
 # --- Configuraciones de Logging ---
 # Nivel de logging para la aplicación. Opciones: DEBUG, INFO, WARNING, ERROR, CRITICAL.
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
 
 # --- Validaciones de Configuración Esencial ---

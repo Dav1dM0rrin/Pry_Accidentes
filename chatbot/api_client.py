@@ -5,6 +5,7 @@ import httpx # Librería moderna para realizar peticiones HTTP, soporta async.
 from chatbot.config import API_BASE_URL # URL base de la API desde la configuración.
 from chatbot.bot_logging import logger # Logger de la aplicación.
 import json # Para decodificar errores JSON de forma segura y para logging.
+from typing import Optional, Dict, Any, List # Para type hints
 
 # Define un timeout por defecto para las peticiones HTTP.
 DEFAULT_HTTP_TIMEOUT = httpx.Timeout(60.0, connect=5.0) # 60s total, 5s para conectar.
@@ -24,6 +25,9 @@ async def report_accident_api(accident_payload: dict) -> dict | None:
                      o un diccionario con claves 'error', 'status_code', 'detail' en caso de fallo,
                      o None si ocurre un error muy inesperado no HTTP.
     """
+    # API_BASE_URL de config.py es por ej. "http://localhost:8000/api/v1"
+    # El endpoint de accidentes en el backend es relativo a esa base, ej. "/accidentes/"
+    # Por lo tanto, la URL final será "http://localhost:8000/api/v1/accidentes/"
     report_url = f"{API_BASE_URL.rstrip('/')}/accidentes/"
     logger.debug(f"API_CLIENT: Intentando reportar accidente. URL: {report_url}. Payload (inicio): {str(accident_payload)[:200]}...")
     try:
@@ -66,7 +70,7 @@ async def report_accident_api(accident_payload: dict) -> dict | None:
         return {"error": True, "status_code": None, "detail": f"Ocurrió un error inesperado y crítico al procesar el reporte: {type(e).__name__}."}
 
 
-async def get_accidents_from_api(params: dict = None) -> list | dict | None: # <--- CORREGIDO AQUÍ: Acepta 'params'
+async def get_accidents_from_api(params: dict = None) -> list | dict | None:
     """
     Consulta la lista de accidentes desde la API del backend, opcionalmente con filtros.
 
@@ -82,12 +86,14 @@ async def get_accidents_from_api(params: dict = None) -> list | dict | None: # <
                             O un diccionario con claves 'error', 'status_code', 'detail' en caso de fallo.
                             O None para errores muy inesperados.
     """
+    # API_BASE_URL de config.py es por ej. "http://localhost:8000/api/v1"
+    # El endpoint de accidentes en el backend es relativo a esa base, ej. "/accidentes/"
     query_url = f"{API_BASE_URL.rstrip('/')}/accidentes/"
-    logger.debug(f"API_CLIENT: Consultando API de accidentes. URL: {query_url}. Filtros: {params}") # <--- CORREGIDO AQUÍ: Usa 'params' para loguear
+    logger.debug(f"API_CLIENT: Consultando API de accidentes. URL: {query_url}. Filtros: {params}")
 
     try:
         async with httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT) as client:
-            response = await client.get(query_url, params=params) # <--- CORREGIDO AQUÍ: Pasa 'params' a httpx
+            response = await client.get(query_url, params=params)
             response.raise_for_status()
             
             accidents_data_response = response.json()
@@ -112,3 +118,49 @@ async def get_accidents_from_api(params: dict = None) -> list | dict | None: # <
         logger.critical(f"API_CLIENT: Error inesperado y crítico en get_accidents_from_api. URL: {query_url}. Error: {e}", exc_info=True)
         return {"error": True, "status_code": None, "detail": f"Ocurrió un error inesperado y crítico al consultar accidentes: {type(e).__name__}."}
 
+# --- NUEVA FUNCIÓN AÑADIDA ABAJO ---
+async def get_accidente_by_id(accidente_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Obtiene los detalles de un accidente específico por su ID desde la API.
+
+    Args:
+        accidente_id (str): El ID del accidente a consultar.
+
+    Returns:
+        Optional[Dict[str, Any]]: Un diccionario con los datos del accidente si se encuentra y no hay error,
+                                   o None si no se encuentra (404) o si ocurre cualquier otro error.
+    """
+    # API_BASE_URL de config.py es por ej. "http://localhost:8000/api/v1"
+    # El endpoint para un accidente específico es relativo a esa base, ej. "/accidentes/{accidente_id}"
+    # Por lo tanto, la URL final será "http://localhost:8000/api/v1/accidentes/ID_DEL_ACCIDENTE"
+    url = f"{API_BASE_URL.rstrip('/')}/accidentes/{accidente_id}" # Construcción de URL consistente
+    
+    logger.info(f"API_CLIENT: Intentando obtener accidente por ID. URL: {url}")
+
+    try:
+        async with httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT) as client:
+            response = await client.get(url)
+        
+        logger.debug(f"API_CLIENT: Respuesta de API para get_accidente_by_id (ID: {accidente_id}): Status={response.status_code}, Content='{response.text[:200]}...'")
+
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                logger.info(f"API_CLIENT: Datos del accidente obtenidos exitosamente para ID {accidente_id}.")
+                return data
+            except json.JSONDecodeError as e: # Error al parsear el JSON de respuesta
+                logger.error(f"API_CLIENT: Error al decodificar JSON para accidente ID {accidente_id} desde {url}. Error: {e}. Respuesta: {response.text[:200]}...")
+                return None
+        elif response.status_code == 404: # Accidente no encontrado
+            logger.warning(f"API_CLIENT: No se encontró accidente con ID {accidente_id} (404) en {url}.")
+            return None 
+        else: # Otros errores HTTP (500, 403, 401, etc.)
+            logger.error(f"API_CLIENT: Error HTTP {response.status_code} al obtener accidente ID {accidente_id} desde {url}. Respuesta: {response.text[:200]}...")
+            return None 
+            
+    except httpx.RequestError as e: # Errores de conexión, timeout de la librería httpx, etc.
+        logger.error(f"API_CLIENT: Error de solicitud HTTPX al obtener accidente ID {accidente_id} desde {url}: {e}", exc_info=True)
+        return None
+    except Exception as e: # Captura cualquier otra excepción inesperada durante el proceso.
+        logger.critical(f"API_CLIENT: Error inesperado y crítico en get_accidente_by_id para ID {accidente_id} ({url}): {e}", exc_info=True)
+        return None

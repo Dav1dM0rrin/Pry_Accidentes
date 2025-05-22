@@ -1,0 +1,195 @@
+/* src/styles/DetalleAccidente.css */
+:root { /* Reutilizar o definir variables similares a inicio.css */
+  --primary-color: #007bff;
+  --primary-color-dark: #0056b3;
+  --secondary-color: #6c757d;
+  --light-gray-bg: #f8f9fa;
+  --text-color-dark: #212529;
+  --text-color-light: #ffffff;
+  --border-color: #dee2e6;
+  --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
+  --card-border-radius: 0.5rem;
+  --font-family-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --navbar-height: 3.5rem; 
+  --topbar-height: 4rem; 
+}
+
+.detalle-page-container {
+  font-family: var(--font-family-sans-serif);
+  background-color: var(--light-gray-bg);
+  min-height: 100vh;
+  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); /* Asumiendo barras de nav globales */
+  padding-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Alinear arriba para scroll */
+}
+
+.detalle-card {
+  background-color: #ffffff;
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
+  width: 100%;
+  max-width: 800px; /* Ancho máximo para la tarjeta de detalles */
+  margin: 1rem;
+  padding: 2rem 2.5rem;
+}
+
+.detalle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detalle-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.btn-back-detalle { /* Estilo específico para el botón de volver en esta página */
+  padding: 0.5rem 1rem;
+  margin-left: 1rem;
+  font-size: 0.9rem;
+  margin-top: 0;
+}
+
+.detalle-section {
+  margin-bottom: 2rem;
+}
+
+.detalle-section:last-child {
+  margin-bottom: 0;
+}
+
+.detalle-section-title {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text-color-dark);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.detalle-item {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.detalle-label {
+  font-weight: 600;
+  color: #495057; /* Un gris un poco más oscuro para las etiquetas */
+  margin-right: 0.5rem;
+  min-width: 180px; /* Ancho mínimo para etiquetas, ayuda a alinear */
+  flex-shrink: 0;
+}
+
+.detalle-value {
+  color: var(--text-color-dark);
+  word-break: break-word; /* Para textos largos */
+}
+
+.detalle-value.muted {
+  color: #868e96; /* Gris más claro para "No disponible" */
+  font-style: italic;
+}
+
+.detalle-value.link {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.detalle-value.link:hover {
+  text-decoration: underline;
+  color: var(--primary-color-dark);
+}
+
+/* Estilos para mensajes de carga y error */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px; /* Ocupar algo de espacio */
+  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem);
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: var(--primary-color);
+  animation: spin 1s ease infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 1.1rem;
+  color: var(--text-color-muted);
+}
+
+.detalle-page-container.error-page {
+  text-align: center;
+  padding-top: 5rem;
+}
+
+.error-message {
+  color: var(--danger-color, #dc3545); /* Definir --danger-color si no está */
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Reutilizar clases de botones si ya están definidas globalmente o en inicio.css */
+/* Si no, definirlas aquí: */
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.btn-primary:hover {
+  background-color: var(--primary-color-dark);
+  border-color: var(--primary-color-dark);
+}
+
+.btn-secondary {
+  color: #fff;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+.btn-secondary:hover {
+  background-color: #545b62; 
+  border-color: #545b62;
+}

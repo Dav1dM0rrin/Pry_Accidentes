@@ -1,0 +1,9 @@
+2025-05-22 16:19:58,433 - root - INFO - bot_logging:setup_logging:65 - Logging configurado. Nivel: INFO (20). Archivo de log: chatbot.log
+2025-05-22 16:19:58,434 - __main__ - INFO - main_bot:main:32 - Iniciando el bot de Telegram...
+2025-05-22 16:19:58,434 - chatbot.llm_service - INFO - llm_service:__init__:88 - LLMService inicializado con el modelo: gemini-1.5-flash-latest
+2025-05-22 16:19:58,435 - __main__ - INFO - main_bot:main:47 - LLMService inicializado correctamente.
+2025-05-22 16:19:58,554 - chatbot.api_client - INFO - api_client:__init__:30 - Cliente API inicializado con URL base: http://localhost:8000
+2025-05-22 16:19:58,554 - __main__ - INFO - main_bot:main:54 - APIClient inicializado correctamente.
+2025-05-22 16:19:58,593 - __main__ - INFO - main_bot:main:96 - ConversationHandler para reporte de accidentes añadido.
+2025-05-22 16:19:58,593 - __main__ - INFO - main_bot:main:101 - Manejadores para /start y /ayuda añadidos.
+2025-05-22 16:19:58,593 - __main__ - INFO - main_bot:main:105 - Manejador general de mensajes (MessageHandler) añadido.
