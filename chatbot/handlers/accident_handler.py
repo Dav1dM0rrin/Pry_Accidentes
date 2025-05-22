@@ -1,6 +1,4 @@
 # Archivo: chatbot/handlers/accident_handler.py
-# Contiene el ConversationHandler para el flujo estructurado de reporte de accidentes
-# y handlers para consulta de accidentes.
 
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from telegram.ext import (
@@ -11,594 +9,527 @@ from telegram.ext import (
     filters
 )
 from chatbot.bot_logging import logger
-# Importar ambas funciones de api_client que ahora se usan en este handler
-from chatbot.api_client import report_accident_api, get_accidente_by_id
-from .conversation_states import ( 
-    REPORTING_ACCIDENT_DESCRIPTION, REPORTING_ACCIDENT_LOCATION,
-    REPORTING_ACCIDENT_DATETIME_CHOICE, REPORTING_ACCIDENT_DATETIME_SPECIFIC,
-    REPORTING_ACCIDENT_GRAVEDAD, REPORTING_ACCIDENT_CONFIRMATION,
+from chatbot.api_client import report_accident_api, get_accidente_by_id # Asumimos que get_accidente_by_id existe
+from .conversation_states import ( # Asegúrate que estos estados coincidan con tu archivo conversation_states.py
+    REPORTING_ACCIDENT_DATETIME_CHOICE, REPORTING_VICTIM_SEX,
+    REPORTING_VICTIM_AGE, REPORTING_VICTIM_COUNT,
+    REPORTING_VICTIM_CONDITION, REPORTING_ACCIDENT_GRAVITY,
+    REPORTING_ACCIDENT_TYPE, REPORTING_BARRIO_SELECTION, 
+    REPORTING_ACCIDENT_CONFIRMATION
 )
 import datetime
-from zoneinfo import ZoneInfo 
-import re # Para expresiones regulares en el manejo de lenguaje natural
-from typing import Optional, Dict, Any # Para type hints en las nuevas funciones
+from zoneinfo import ZoneInfo
+import re
+from typing import Optional, Dict, Any
 
 COLOMBIA_TZ = ZoneInfo("America/Bogota")
 
-# --- Funciones del ConversationHandler para Reportar Accidente (TU CÓDIGO EXISTENTE) ---
-# (Todo tu código para start_accident_report, accident_description_handler, 
-# accident_location_handler, accident_datetime_choice_handler, 
-# accident_datetime_specific_handler, ask_for_gravity_handler, 
-# accident_gravity_handler, show_final_confirmation_handler, 
-# accident_final_confirmation_handler, y cancel_report_handler 
-# se mantiene aquí sin cambios. No lo repito para brevedad, pero asegúrate de que esté completo.)
-async def start_accident_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    if not update.effective_user:
-        logger.warning("ACCIDENT_HANDLER: start_accident_report sin effective_user.")
-        return ConversationHandler.END 
-    user_id = update.effective_user.id
-    user_name = update.effective_user.full_name or update.effective_user.username
-    logger.info(f"ACCIDENT_HANDLER: Usuario {user_id} ({user_name}) inició reporte de accidente con /reportar.")
-    context.user_data.pop('current_accident_report_data', None)
-    pre_extracted_entities = context.user_data.pop('llm_pre_extracted_report_entities', None)
-    current_report_data = {} 
-    if pre_extracted_entities and isinstance(pre_extracted_entities, dict):
-        logger.info(f"ACCIDENT_HANDLER: Usando entidades pre-extraídas por LLM: {pre_extracted_entities}")
-        current_report_data['descripcion_llm'] = pre_extracted_entities.get('descripcion')
-        current_report_data['ubicacion_texto_llm'] = pre_extracted_entities.get('ubicacion')
-    context.user_data['current_accident_report_data'] = current_report_data
-    if current_report_data.get('descripcion_llm'):
-        await update.message.reply_text(
-            f"He entendido que quieres reportar un accidente y mencionaste algo sobre: \"{current_report_data['descripcion_llm']}\".\n\n"
-            "Para continuar, por favor, proporciona la **ubicación exacta** del accidente (ej: Calle 72 con Carrera 46, Barrio El Prado)."
-            "\nTambién puedes compartir tu ubicación actual usando el botón de 'Compartir Ubicación' (ícono del clip 📎 en Telegram).",
-            reply_markup=ReplyKeyboardRemove()
-        )
-        return REPORTING_ACCIDENT_LOCATION
-    else:
-        await update.message.reply_text(
-            "Entendido. Vamos a reportar un accidente paso a paso.\n\n"
-            "Primero, por favor, **describe brevemente qué sucedió** en el accidente.",
-            reply_markup=ReplyKeyboardRemove()
-        )
-        return REPORTING_ACCIDENT_DESCRIPTION
+# --- Opciones predefinidas basadas en tu BD (idealmente, obtenerlas de la API) ---
+CONDICION_VICTIMA_OPTIONS = {
+    "Peatón": 1, "Pasajero": 2, "Acompañante": 3,
+    "Conductor": 4, "Ciclista": 5, "Motociclista": 6
+}
+GRAVEDAD_VICTIMA_OPTIONS = { "Herido": 1, "Muerto": 2 }
+TIPO_ACCIDENTE_OPTIONS = {
+    "Choque": 1, "Atropello": 2, "Volcamiento": 3,
+    "Caída Ocupante": 4, "Incendio": 5, "Otro": 6
+}
 
+# Extraído del SQL: tabla accidente_barrio
+BARRIO_OPTIONS = {
+    "El Prado": 1, "Alto Prado": 2, "Villa Country": 3, "Riomar": 4,
+    "El Golf": 5, "Ciudad Jardín": 6, "Paraíso": 7, "Villa Santos": 8,
+    "El Limoncito": 9, "Andalucía": 10, "Betania": 11, "El Recreo": 12,
+    "Boston": 13, "Villa Carolina": 14, "El Porvenir": 15, "Modelo": 16,
+    "Santa Ana": 17, "Monte Cristo": 18, "Chiquinquirá": 19, "San Roque": 20,
+    "Rebolo": 21, "La Luz": 22, "Las Nieves": 23, "Simón Bolívar": 24,
+    "Los Andes": 25, "La Victoria": 26, "El Santuario": 27, "La Sierra": 28,
+    "El Bosque": 29, "Las Malvinas": 30, "La Paz": 31, "El Pueblo": 32,
+    "Lipaya": 33, "Siape": 34, "Las Flores": 35, "Adelita de Char": 36,
+    "La Playa": 37, "El Ferry": 38, "Pasadena": 39, "San Salvador": 40,
+    "Bellavista": 41, "La Concepción": 42, "Colombia": 43, "El Castillo": 44,
+    "Miramar": 45, "Buenavista": 46, "Las Delicias": 47, "América": 48,
+    "El Rosario": 49, "Centro": 50, "Barlovento": 51, "Villanueva": 52,
+    "La Chinita": 53, "El Carmen": 54, "Kennedy": 55, "Olaya": 56,
+    "El Valle": 57, "Los Continentes": 58, "Sourdís": 59, "La Manga": 60,
+    "Me Quejo": 61, "Por Fin": 62, "Los Olivos": 63, "La Pradera": 64,
+    "El Edén": 65, "Las Granjas": 66, "Santo Domingo de Guzmán": 67,
+    "Ciudadela 20 de Julio": 68, "Villa San Pedro": 69, "Las Américas": 70,
+    "7 de Abril": 71, "Los Girasoles": 72, "Carrizal": 73, "Buenos Aires": 74,
+    "Villa Sevilla": 75, "Las Cayenas": 76, "El Romance": 77, "California": 78,
+    "Cordialidad": 79, "Villa San Carlos": 80, "La Sierrita": 81, "Evaristo Sourdís": 82,
+    "La Gloria": 83, "Villa Flor": 84, "El Silencio": 85, "La Libertad": 86,
+    "Nueva Granada": 87, "San Felipe": 88, "Lucero": 89, "Carlos Meisel": 90,
+    "Nueva Colombia": 91, "Cuchilla de Villate": 92, "El Tabor": 93, "La Cumbre": 94,
+    "Los Nogales": 95, "Campo Alegre": 96, "Las Estrellas": 97, "El Limón": 98,
+    "Villate": 99, "San Isidro": 100, "Alfonso López": 101, "Los Pinos": 102,
+    "El Rubí": 103, "La Ceiba": 104, "La Esmeralda": 105, "El Milagro": 106,
+    "Pumarejo": 107, "La Unión": 108, "Boyacá": 109, "Atlántico": 110,
+    "Los Trupillos": 111, "La Magdalena": 112, "El Campito": 113, "Las Palmas": 114,
+    "La Loma": 115, "San José": 116, "Moderno": 117, "Montes": 118,
+    "San Nicolás": 119, "José Antonio Galán": 120, "Villa Blanca": 121,
+    "El Parque": 122, "Las Terrazas": 123
+}
 
-async def accident_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    description_text = update.message.text.strip()
-    if not description_text: 
-        await update.message.reply_text("La descripción no puede estar vacía. Por favor, describe qué sucedió o usa /cancelar.")
-        return REPORTING_ACCIDENT_DESCRIPTION
+# --- Funciones para el Flujo de Reporte de Accidente (Versión con Opciones) ---
 
-    report_data = context.user_data.get('current_accident_report_data', {})
-    report_data['descripcion_usuario'] = description_text 
-    context.user_data['current_accident_report_data'] = report_data
-    logger.info(f"ACCIDENT_HANDLER: Descripción del accidente: '{description_text}' para user_id {update.effective_user.id}")
+async def start_accident_report_v2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Punto de entrada para el nuevo flujo de reporte de accidentes."""
+    user_id_telegram = update.effective_user.id
+    # TODO: En Parte 2, verificar aquí si el usuario está logueado.
+    # logger.info(f"ACCIDENT_HANDLER_V2: Usuario {user_id_telegram} inició reporte. Verificando login...")
+    # if not context.user_data.get('backend_user_id'): # Asumiendo que guardas el ID del backend aquí tras login
+    #     await update.message.reply_text("Debes iniciar sesión para reportar un accidente. Usa /login primero.")
+    #     return ConversationHandler.END
 
-    pre_extracted_location_text = report_data.get('ubicacion_texto_llm')
-    if pre_extracted_location_text:
-        await update.message.reply_text(
-            f"Gracias por la descripción.\n"
-            f"El asistente entendió inicialmente que la ubicación podría ser \"{pre_extracted_location_text}\".\n"
-            "¿Es esta la **ubicación correcta**? Puedes confirmarla escribiéndola de nuevo, corregirla, o compartir tu ubicación actual usando el botón de 'Compartir Ubicación' (ícono del clip 📎).",
-        )
-    else:
-        await update.message.reply_text(
-            f"Entendido. Descripción registrada.\n\n"
-            "Ahora, por favor, indica la **ubicación exacta** del accidente (ej: Calle 72 con Carrera 46, Barrio Recreo)."
-            "\nTambién puedes compartir tu ubicación actual usando el botón de 'Compartir Ubicación' (ícono del clip 📎).",
-        )
-    return REPORTING_ACCIDENT_LOCATION
-
-
-async def accident_location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user_telegram_location = update.message.location 
-    user_text_location = update.message.text.strip() if update.message.text else None 
+    logger.info(f"ACCIDENT_HANDLER_V2: Usuario {user_id_telegram} inició reporte de accidente con /reportar.")
+    context.user_data['current_accident_report_v2_data'] = {} # Limpiar/iniciar datos para este reporte
     
-    report_data = context.user_data.get('current_accident_report_data', {})
-    location_display_text = "No especificada"
-
-    if user_telegram_location:
-        report_data['latitud_telegram'] = user_telegram_location.latitude
-        report_data['longitud_telegram'] = user_telegram_location.longitude
-        location_display_text = f"coordenadas (Lat: {user_telegram_location.latitude:.5f}, Lon: {user_telegram_location.longitude:.5f})"
-        report_data['ubicacion_tipo_entrada'] = "coordenadas_telegram"
-        logger.info(f"ACCIDENT_HANDLER: Ubicación del accidente (coordenadas Telegram): {location_display_text} para user_id {update.effective_user.id}")
-    elif user_text_location:
-        report_data['direccion_texto_usuario'] = user_text_location
-        location_display_text = user_text_location
-        report_data['ubicacion_tipo_entrada'] = "texto_usuario"
-        report_data.pop('latitud_telegram', None)
-        report_data.pop('longitud_telegram', None)
-        logger.info(f"ACCIDENT_HANDLER: Ubicación del accidente (texto usuario): '{location_display_text}' para user_id {update.effective_user.id}")
-    else: 
-        await update.message.reply_text("No pude obtener la información de ubicación. Por favor, inténtalo de nuevo escribiendo la dirección o compartiendo tu ubicación, o usa /cancelar.")
-        return REPORTING_ACCIDENT_LOCATION
-
-    report_data['ubicacion_procesada_para_mostrar'] = location_display_text 
-    context.user_data['current_accident_report_data'] = report_data 
-
-    datetime_choice_keyboard = [
-        [KeyboardButton("Sí, el accidente acaba de ocurrir")],
-        [KeyboardButton("No, el accidente fue antes")]
-    ]
     await update.message.reply_text(
-        f"Ubicación registrada: \"{location_display_text}\".\n\n"
-        "Ahora, sobre la **fecha y hora del accidente**: ¿Ocurrió justo ahora o en un momento anterior?",
-        reply_markup=ReplyKeyboardMarkup(datetime_choice_keyboard, one_time_keyboard=True, resize_keyboard=True, input_field_placeholder="Elige una opción de fecha/hora"),
+        "Vamos a reportar un nuevo accidente. Por favor, sigue los pasos.\n\n"
+        "Primero, ¿cuándo ocurrió el accidente? (ej: DD/MM/AAAA HH:MM, o escribe 'ahora')",
+        reply_markup=ReplyKeyboardMarkup([["Ahora"]], one_time_keyboard=True, resize_keyboard=True)
     )
     return REPORTING_ACCIDENT_DATETIME_CHOICE
 
+async def handle_accident_datetime_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la elección de fecha/hora o la fecha/hora específica."""
+    text = update.message.text.strip()
+    report_data = context.user_data.get('current_accident_report_v2_data', {})
 
-async def accident_datetime_choice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user_choice_text = update.message.text
-    report_data = context.user_data.get('current_accident_report_data', {})
-
-    if "Sí, el accidente acaba de ocurrir" in user_choice_text:
+    if text.lower() == "ahora":
         now_utc = datetime.datetime.now(datetime.timezone.utc)
-        report_data['fecha_hora_ocurrencia_iso'] = now_utc.isoformat() 
-        logger.info(f"ACCIDENT_HANDLER: Fecha/hora del accidente: AHORA ({report_data['fecha_hora_ocurrencia_iso']}) para user_id {update.effective_user.id}")
-        context.user_data['current_accident_report_data'] = report_data
-        return await ask_for_gravity_handler(update, context) 
-    elif "No, el accidente fue antes" in user_choice_text:
-        await update.message.reply_text(
-            "Entendido.\nPor favor, indica la **fecha y hora exactas** del accidente.\n"
-            "Usa el formato: DD/MM/AAAA HH:MM (ejemplo: 21/05/2024 14:30).",
-            reply_markup=ReplyKeyboardRemove(), 
-        )
-        return REPORTING_ACCIDENT_DATETIME_SPECIFIC 
-    else: 
-        await update.message.reply_text("Por favor, elige una de las opciones del teclado: 'Sí, el accidente acaba de ocurrir' o 'No, el accidente fue antes'.")
-        return REPORTING_ACCIDENT_DATETIME_CHOICE
-
-
-async def accident_datetime_specific_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    datetime_input_text = update.message.text.strip()
-    report_data = context.user_data.get('current_accident_report_data', {})
-    
-    parsed_datetime_object = None
-    formats_to_try = ["%d/%m/%Y %H:%M", "%d-%m-%Y %H:%M", "%Y-%m-%d %H:%M"] 
-    for fmt in formats_to_try:
-        try:
-            parsed_datetime_object = datetime.datetime.strptime(datetime_input_text, fmt)
-            break 
-        except ValueError:
-            continue 
-            
-    if not parsed_datetime_object:
-        logger.warning(f"ACCIDENT_HANDLER: Formato de fecha/hora inválido: '{datetime_input_text}' de user_id {update.effective_user.id}")
-        await update.message.reply_text(
-            "El formato de fecha/hora que ingresaste no es reconocido. 🤔\n"
-            "Por favor, usa DD/MM/AAAA HH:MM (ejemplo: 21/05/2024 14:30).\n"
-            "Si te equivocaste, puedes usar /cancelar y luego /reportar de nuevo para elegir la opción 'Sí, el accidente acaba de ocurrir'."
-        )
-        return REPORTING_ACCIDENT_DATETIME_SPECIFIC 
-    
-    if parsed_datetime_object.tzinfo is None:
-        datetime_colombia_aware = COLOMBIA_TZ.localize(parsed_datetime_object)
-    else: 
-        datetime_colombia_aware = parsed_datetime_object.astimezone(COLOMBIA_TZ)
-        
-    report_data['fecha_hora_ocurrencia_iso'] = datetime_colombia_aware.isoformat()
-    logger.info(f"ACCIDENT_HANDLER: Fecha/hora específica del accidente: {report_data['fecha_hora_ocurrencia_iso']} para user_id {update.effective_user.id}")
-    context.user_data['current_accident_report_data'] = report_data
-    return await ask_for_gravity_handler(update, context)
-
-
-async def ask_for_gravity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    gravity_options_keyboard = [
-        [KeyboardButton("LEVE (Solo daños materiales, sin heridos)")], 
-        [KeyboardButton("MODERADA (Heridos leves, atención médica menor)")], 
-        [KeyboardButton("GRAVE (Heridos graves, hospitalización o víctimas fatales)")]
-    ]
-    await update.message.reply_text(
-        "Entendido. Ahora, por favor, indica cuál consideras que fue la **gravedad estimada** del accidente:",
-        reply_markup=ReplyKeyboardMarkup(
-            gravity_options_keyboard,
-            one_time_keyboard=True, 
-            resize_keyboard=True, 
-            input_field_placeholder="Selecciona la gravedad del accidente"
-        ),
-    )
-    return REPORTING_ACCIDENT_GRAVEDAD
-
-
-async def accident_gravity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    gravity_choice_text = update.message.text
-    report_data = context.user_data.get('current_accident_report_data', {})
-    
-    gravity_api_value = "LEVE" 
-    if "LEVE" in gravity_choice_text.upper():
-        gravity_api_value = "LEVE"
-    elif "MODERADA" in gravity_choice_text.upper():
-        gravity_api_value = "MODERADA"
-    elif "GRAVE" in gravity_choice_text.upper() or "FATAL" in gravity_choice_text.upper():
-        gravity_api_value = "GRAVE" 
+        # Formato ISO 8601 con 'Z' para UTC, como en tu ejemplo de payload
+        report_data['fecha'] = now_utc.isoformat(timespec='milliseconds').replace("+00:00", "Z")
+        logger.info(f"ACCIDENT_HANDLER_V2: Fecha/hora: AHORA ({report_data['fecha']})")
     else:
-        logger.warning(f"ACCIDENT_HANDLER: Gravedad no reconocida claramente de: '{gravity_choice_text}' para user_id {update.effective_user.id}. Usando LEVE por defecto.")
-        await update.message.reply_text("No reconocí la opción de gravedad, se asignará 'LEVE'. Puedes corregir al final si es necesario.")
+        parsed_dt = None
+        # Formatos a intentar, incluyendo con y sin segundos, y diferentes separadores
+        formats_to_try = [
+            "%d/%m/%Y %H:%M:%S", "%d-%m-%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S",
+            "%d/%m/%Y %H:%M",    "%d-%m-%Y %H:%M",    "%Y-%m-%d %H:%M",
+            "%d/%m/%y %H:%M:%S", "%d-%m-%y %H:%M:%S",
+            "%d/%m/%y %H:%M",    "%d-%m-%y %H:%M"
+        ]
+        for fmt in formats_to_try:
+            try:
+                parsed_dt = datetime.datetime.strptime(text, fmt)
+                break
+            except ValueError:
+                continue
+        
+        if not parsed_dt: # Intentar parsear solo fecha si no se incluye hora
+            date_formats_to_try = ["%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d", "%d/%m/%y", "%d-%m-%y"]
+            for fmt in date_formats_to_try:
+                try:
+                    parsed_date_only = datetime.datetime.strptime(text, fmt)
+                    # Asumir medianoche (00:00:00) si solo se da la fecha
+                    parsed_dt = datetime.datetime.combine(parsed_date_only.date(), datetime.time.min)
+                    logger.info(f"ACCIDENT_HANDLER_V2: Solo fecha ingresada '{text}', asumiendo medianoche: {parsed_dt}")
+                    break
+                except ValueError:
+                    continue
 
-    report_data['gravedad_estimada_api'] = gravity_api_value
-    report_data['gravedad_estimada_display'] = gravity_choice_text 
-    logger.info(f"ACCIDENT_HANDLER: Gravedad estimada (API value): {gravity_api_value} para user_id {update.effective_user.id}")
-    context.user_data['current_accident_report_data'] = report_data
+        if parsed_dt:
+            # Asumir que la fecha/hora ingresada es en la zona horaria de Colombia
+            if parsed_dt.tzinfo is None:
+                datetime_colombia_aware = COLOMBIA_TZ.localize(parsed_dt)
+            else: # Si ya tiene timezone, convertir a Colombia
+                datetime_colombia_aware = parsed_dt.astimezone(COLOMBIA_TZ)
+            
+            # Convertir a UTC para el payload
+            datetime_utc = datetime_colombia_aware.astimezone(datetime.timezone.utc)
+            report_data['fecha'] = datetime_utc.isoformat(timespec='milliseconds').replace("+00:00", "Z")
+            logger.info(f"ACCIDENT_HANDLER_V2: Fecha/hora específica (UTC): {report_data['fecha']}")
+        else:
+            await update.message.reply_text(
+                "Formato de fecha/hora no reconocido. 🤔\nUsa DD/MM/AAAA HH:MM (ej: 21/05/2024 14:30) o escribe 'ahora'. Inténtalo de nuevo:",
+                reply_markup=ReplyKeyboardMarkup([["Ahora"]], one_time_keyboard=True, resize_keyboard=True)
+            )
+            return REPORTING_ACCIDENT_DATETIME_CHOICE
+
+    context.user_data['current_accident_report_v2_data'] = report_data
+    sex_keyboard = [["Masculino (M)"], ["Femenino (F)"], ["Otro (O)"]]
+    # Mostrar fecha en formato local para confirmación visual
+    fecha_local_display = datetime.datetime.fromisoformat(report_data['fecha'].replace('Z', '+00:00')).astimezone(COLOMBIA_TZ).strftime('%d/%m/%Y %I:%M %p')
+    await update.message.reply_text(
+        f"Fecha y hora registradas: {fecha_local_display} (Colombia).\n\n"
+        "Ahora, selecciona el sexo de la víctima principal:",
+        reply_markup=ReplyKeyboardMarkup(sex_keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
+    return REPORTING_VICTIM_SEX
+
+async def handle_victim_sex(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la selección del sexo de la víctima."""
+    sexo_input = update.message.text.strip().upper()
+    sexo_enviar = "O" # Default a 'Otro' si no coincide
+    if "MASCULINO" in sexo_input or sexo_input == "M":
+        sexo_enviar = "M"
+    elif "FEMENINO" in sexo_input or sexo_input == "F":
+        sexo_enviar = "F"
+    # El payload espera "string", así que "M", "F", "O" son válidos.
+    # Si tu backend espera específicamente solo M o F y maneja "Otro" de forma diferente, ajusta.
     
-    return await show_final_confirmation_handler(update, context)
+    context.user_data['current_accident_report_v2_data']['sexo_victima'] = sexo_enviar
+    logger.info(f"ACCIDENT_HANDLER_V2: Sexo víctima: {sexo_enviar}")
+    await update.message.reply_text("Sexo registrado. Ahora, la edad de la víctima principal (en años, solo números):", reply_markup=ReplyKeyboardRemove())
+    return REPORTING_VICTIM_AGE
 
+async def handle_victim_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja el ingreso de la edad de la víctima."""
+    try:
+        edad = int(update.message.text.strip())
+        if not (0 <= edad <= 120): # Un rango razonable para la edad
+            raise ValueError("Edad fuera de rango (0-120).")
+        context.user_data['current_accident_report_v2_data']['edad_victima'] = edad
+        logger.info(f"ACCIDENT_HANDLER_V2: Edad víctima: {edad}")
+        await update.message.reply_text("Edad registrada. ¿Cuántas víctimas hubo en total en este accidente? (solo números)")
+        return REPORTING_VICTIM_COUNT
+    except ValueError:
+        await update.message.reply_text("Por favor, ingresa un número válido para la edad (ej: 30).")
+        return REPORTING_VICTIM_AGE
 
-async def show_final_confirmation_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    report_data = context.user_data.get('current_accident_report_data', {})
-    
-    if not report_data or not report_data.get("descripcion_usuario"): 
+async def handle_victim_count(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja el ingreso de la cantidad de víctimas."""
+    try:
+        cantidad = int(update.message.text.strip())
+        if cantidad < 1: # Debe haber al menos una víctima para este flujo
+            raise ValueError("La cantidad de víctimas debe ser al menos 1.")
+        context.user_data['current_accident_report_v2_data']['cantidad_victima'] = cantidad
+        logger.info(f"ACCIDENT_HANDLER_V2: Cantidad víctimas: {cantidad}")
+        
+        keyboard = [[KeyboardButton(text)] for text in CONDICION_VICTIMA_OPTIONS.keys()]
         await update.message.reply_text(
-            "Parece que no hemos recopilado suficiente información (falta la descripción).\n"
-            "Por favor, inicia el reporte de nuevo con /reportar.", 
+            "Cantidad registrada.\n"
+            "Ahora, selecciona la condición de la víctima principal (ej. Peatón, Conductor):",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+        )
+        return REPORTING_VICTIM_CONDITION
+    except ValueError:
+        await update.message.reply_text("Por favor, ingresa un número válido para la cantidad (ej: 1).")
+        return REPORTING_VICTIM_COUNT
+
+async def handle_victim_condition(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la selección de la condición de la víctima."""
+    selected_condition_text = update.message.text.strip()
+    condition_id = CONDICION_VICTIMA_OPTIONS.get(selected_condition_text)
+
+    if condition_id is None:
+        await update.message.reply_text("Opción no válida. Por favor, selecciona una condición de la lista.")
+        keyboard = [[KeyboardButton(text)] for text in CONDICION_VICTIMA_OPTIONS.keys()]
+        await update.message.reply_text(
+            "Selecciona la condición de la víctima principal:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+        )
+        return REPORTING_VICTIM_CONDITION
+
+    context.user_data['current_accident_report_v2_data']['condicion_victima_id'] = condition_id
+    logger.info(f"ACCIDENT_HANDLER_V2: Condición víctima ID: {condition_id} (seleccionado: '{selected_condition_text}')")
+    
+    keyboard = [[KeyboardButton(text)] for text in GRAVEDAD_VICTIMA_OPTIONS.keys()]
+    await update.message.reply_text(
+        "Condición registrada.\n"
+        "Selecciona la gravedad de la víctima principal (ej. Herido, Muerto):",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
+    return REPORTING_ACCIDENT_GRAVITY
+
+async def handle_accident_gravity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la selección de la gravedad del accidente/víctima."""
+    selected_gravity_text = update.message.text.strip()
+    gravity_id = GRAVEDAD_VICTIMA_OPTIONS.get(selected_gravity_text)
+
+    if gravity_id is None:
+        await update.message.reply_text("Opción no válida. Por favor, selecciona una gravedad de la lista.")
+        keyboard = [[KeyboardButton(text)] for text in GRAVEDAD_VICTIMA_OPTIONS.keys()]
+        await update.message.reply_text(
+            "Selecciona la gravedad de la víctima principal:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+        )
+        return REPORTING_ACCIDENT_GRAVITY
+        
+    context.user_data['current_accident_report_v2_data']['gravedad_victima_id'] = gravity_id
+    logger.info(f"ACCIDENT_HANDLER_V2: Gravedad víctima ID: {gravity_id} (seleccionado: '{selected_gravity_text}')")
+    
+    keyboard = [[KeyboardButton(text)] for text in TIPO_ACCIDENTE_OPTIONS.keys()]
+    await update.message.reply_text(
+        "Gravedad registrada.\n"
+        "Selecciona el tipo de accidente (ej. Choque, Atropello):",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
+    return REPORTING_ACCIDENT_TYPE
+
+async def handle_accident_type(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la selección del tipo de accidente."""
+    selected_type_text = update.message.text.strip()
+    type_id = TIPO_ACCIDENTE_OPTIONS.get(selected_type_text)
+
+    if type_id is None:
+        await update.message.reply_text("Opción no válida. Por favor, selecciona un tipo de accidente de la lista.")
+        keyboard = [[KeyboardButton(text)] for text in TIPO_ACCIDENTE_OPTIONS.keys()]
+        await update.message.reply_text(
+            "Selecciona el tipo de accidente:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+        )
+        return REPORTING_ACCIDENT_TYPE
+
+    context.user_data['current_accident_report_v2_data']['tipo_accidente_id'] = type_id
+    logger.info(f"ACCIDENT_HANDLER_V2: Tipo accidente ID: {type_id} (seleccionado: '{selected_type_text}')")
+    
+    barrio_keys = list(BARRIO_OPTIONS.keys())
+    keyboard_barrios = []
+    # Agrupar barrios para teclados manejables. Ejemplo: 2 columnas.
+    # En una app real, considera InlineKeyboards con paginación para listas muy largas.
+    temp_row = []
+    for i, barrio_key in enumerate(barrio_keys):
+        temp_row.append(KeyboardButton(barrio_key))
+        if len(temp_row) == 2 or i == len(barrio_keys) - 1: # 2 barrios por fila
+            keyboard_barrios.append(temp_row)
+            temp_row = []
+    
+    if not keyboard_barrios:
+        logger.warning("ACCIDENT_HANDLER_V2: BARRIO_OPTIONS está vacío. Pidiendo ID numérico para ubicación.")
+        await update.message.reply_text(
+            "Tipo de accidente registrado.\n"
+            "No hay opciones de barrio configuradas. Por favor, ingresa el ID numérico de la ubicación (si lo conoces, sino ingresa 0).",
             reply_markup=ReplyKeyboardRemove()
         )
-        return ConversationHandler.END
+        # Este es un fallback si BARRIO_OPTIONS está vacío, lo cual no debería pasar si está bien definido.
+        # El estado sigue siendo REPORTING_BARRIO_SELECTION, pero el handler handle_barrio_selection
+        # debería poder manejar un input numérico si no hay opciones.
+        # Sin embargo, es mejor asegurar que BARRIO_OPTIONS esté poblado.
+        # Por ahora, asumimos que el usuario escribirá un número si esto pasa.
+        return REPORTING_BARRIO_SELECTION # Dejar que el siguiente handler intente parsear un número
+    else:
+         await update.message.reply_text(
+            "Tipo de accidente registrado.\n"
+            "Ahora, selecciona el barrio donde ocurrió el accidente:",
+            reply_markup=ReplyKeyboardMarkup(keyboard_barrios, one_time_keyboard=True, resize_keyboard=True) # No usar input_field_placeholder con teclados de opciones
+        )
+    return REPORTING_BARRIO_SELECTION
 
-    desc_display = report_data.get('descripcion_usuario', '_No especificada_')
-    ubicacion_display = report_data.get('ubicacion_procesada_para_mostrar', '_No especificada_')
-    fecha_hora_display = "_No especificada_"
-    if 'fecha_hora_ocurrencia_iso' in report_data and report_data['fecha_hora_ocurrencia_iso']:
+async def handle_barrio_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Maneja la selección del barrio para determinar la ubicacion_id."""
+    selected_barrio_text = update.message.text.strip()
+    ubicacion_id_from_barrio = BARRIO_OPTIONS.get(selected_barrio_text)
+
+    if ubicacion_id_from_barrio is None:
+        # Si el usuario escribe algo que no es una opción, intentar parsearlo como ID numérico
+        # Esto sirve de fallback si BARRIO_OPTIONS estuviera vacío y se pidió ID numérico.
         try:
-            dt_utc = datetime.datetime.fromisoformat(report_data['fecha_hora_ocurrencia_iso'])
-            dt_colombia = dt_utc.astimezone(COLOMBIA_TZ)
-            fecha_hora_display = dt_colombia.strftime("%d de %B de %Y a las %I:%M %p (%Z)") 
-        except (ValueError, TypeError): 
-            fecha_hora_display = str(report_data['fecha_hora_ocurrencia_iso']) 
+            ubicacion_id_from_barrio = int(selected_barrio_text)
+            logger.info(f"ACCIDENT_HANDLER_V2: Barrio no seleccionado de lista, se interpretó como ID numérico: {ubicacion_id_from_barrio}")
+            # Aquí podrías querer validar si este ID numérico es válido contra tu tabla de ubicaciones.
+        except ValueError:
+            await update.message.reply_text("Opción de barrio no válida. Por favor, selecciona un barrio de la lista o ingresa un ID numérico de ubicación si se te indicó.")
+            # Re-mostrar teclado de barrios
+            barrio_keys = list(BARRIO_OPTIONS.keys())
+            keyboard_barrios = []
+            temp_row = []
+            for i, barrio_key in enumerate(barrio_keys):
+                temp_row.append(KeyboardButton(barrio_key))
+                if len(temp_row) == 2 or i == len(barrio_keys) - 1:
+                    keyboard_barrios.append(temp_row)
+                    temp_row = []
+            if keyboard_barrios: # Solo mostrar si hay opciones
+                 await update.message.reply_text(
+                    "Selecciona el barrio donde ocurrió el accidente:",
+                    reply_markup=ReplyKeyboardMarkup(keyboard_barrios, one_time_keyboard=True, resize_keyboard=True)
+                )
+            return REPORTING_BARRIO_SELECTION
+        
+    context.user_data['current_accident_report_v2_data']['ubicacion_id'] = ubicacion_id_from_barrio
+    context.user_data['current_accident_report_v2_data']['barrio_nombre_seleccionado'] = selected_barrio_text # Guardar nombre para resumen
+    logger.info(f"ACCIDENT_HANDLER_V2: Ubicación ID (desde barrio): {ubicacion_id_from_barrio} (seleccionado/ingresado: '{selected_barrio_text}')")
+    return await show_final_confirmation_v2(update, context)
 
-    gravedad_display = report_data.get('gravedad_estimada_display', '_No especificada_')
-
-    summary_message_parts = [
-        "📝 *Resumen del Reporte de Accidente*",
-        "Por favor, verifica cuidadosamente que toda la información sea correcta antes de enviar:\n",
-        f"*Descripción*: {desc_display}",
-        f"*Ubicación*: {ubicacion_display}",
-        f"*Fecha y Hora*: {fecha_hora_display}",
-        f"*Gravedad Estimada*: {gravedad_display}\n",
-        "¿Es correcta esta información y deseas enviar el reporte ahora?"
-    ]
+async def show_final_confirmation_v2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Muestra el resumen de los datos recolectados y pide confirmación final."""
+    report_data = context.user_data.get('current_accident_report_v2_data', {})
     
-    confirmation_keyboard_options = [
-        [KeyboardButton("✅ Sí, enviar reporte ahora")],
-        [KeyboardButton("❌ No, cancelar y corregir")]
+    fecha_display = "No especificada"
+    if report_data.get('fecha'):
+        try:
+            dt_utc = datetime.datetime.fromisoformat(report_data['fecha'].replace("Z", "+00:00"))
+            dt_colombia = dt_utc.astimezone(COLOMBIA_TZ)
+            fecha_display = dt_colombia.strftime("%d/%m/%Y %I:%M %p")
+        except: fecha_display = report_data.get('fecha')
+    
+    cond_vic_id = report_data.get('condicion_victima_id')
+    cond_vic_display = next((k for k, v in CONDICION_VICTIMA_OPTIONS.items() if v == cond_vic_id), f"ID: {cond_vic_id}")
+    
+    grav_id = report_data.get('gravedad_victima_id')
+    grav_display = next((k for k, v in GRAVEDAD_VICTIMA_OPTIONS.items() if v == grav_id), f"ID: {grav_id}")
+
+    tipo_acc_id = report_data.get('tipo_accidente_id')
+    tipo_acc_display = next((k for k, v in TIPO_ACCIDENTE_OPTIONS.items() if v == tipo_acc_id), f"ID: {tipo_acc_id}")
+    
+    barrio_nombre_display = report_data.get('barrio_nombre_seleccionado', 'N/A')
+    ubicacion_id_display = report_data.get('ubicacion_id', 'N/A')
+
+    summary_parts = [
+        "📝 *Resumen del Reporte de Accidente*",
+        "Verifica la información antes de enviar:\n",
+        f"*Fecha y Hora (UTC)*: {report_data.get('fecha', 'N/A')} ({fecha_display} Colombia)",
+        f"*Sexo Víctima*: {report_data.get('sexo_victima', 'N/A')}",
+        f"*Edad Víctima*: {report_data.get('edad_victima', 'N/A')} años",
+        f"*Cantidad Víctimas*: {report_data.get('cantidad_victima', 'N/A')}",
+        f"*Condición Víctima*: {cond_vic_display}",
+        f"*Gravedad Víctima*: {grav_display}",
+        f"*Tipo Accidente*: {tipo_acc_display}",
+        f"*Ubicación (Barrio Seleccionado/ID)*: {barrio_nombre_display if ubicacion_id_display !=0 else 'ID Numérico: '+ str(ubicacion_id_display)} (ID para Payload: {ubicacion_id_display})\n",
+        "¿Enviar este reporte?"
     ]
+    confirmation_keyboard = [["✅ Sí, enviar"], ["❌ No, cancelar"]]
     await update.message.reply_text(
-        "\n".join(summary_message_parts),
-        reply_markup=ReplyKeyboardMarkup(
-            confirmation_keyboard_options,
-            one_time_keyboard=True,
-            resize_keyboard=True,
-            input_field_placeholder="Confirma o cancela el reporte"
-        ),
-        parse_mode='Markdown' 
+        "\n".join(summary_parts),
+        reply_markup=ReplyKeyboardMarkup(confirmation_keyboard, one_time_keyboard=True, resize_keyboard=True),
+        parse_mode='Markdown'
     )
     return REPORTING_ACCIDENT_CONFIRMATION
 
+async def accident_final_confirmation_v2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Procesa la confirmación final y envía el payload exacto a la API."""
+    user_choice = update.message.text
+    if "✅ Sí, enviar" not in user_choice:
+        await update.message.reply_text("Reporte cancelado.", reply_markup=ReplyKeyboardRemove())
+        context.user_data.pop('current_accident_report_v2_data', None)
+        return ConversationHandler.END
 
-async def accident_final_confirmation_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user_final_choice = update.message.text
-    report_data = context.user_data.get('current_accident_report_data', {})
-
-    if "✅ Sí, enviar reporte ahora" in user_final_choice:
-        if not report_data: 
-            await update.message.reply_text("No hay datos de reporte para enviar. Por favor, usa /reportar de nuevo.", reply_markup=ReplyKeyboardRemove())
-            return ConversationHandler.END
-
-        api_payload = {
-            "descripcion": report_data.get("descripcion_usuario"),
-            "fecha_hora_ocurrencia": report_data.get("fecha_hora_ocurrencia_iso"), 
-            "latitud": report_data.get("latitud_telegram"), 
-            "longitud": report_data.get("longitud_telegram"), 
-            "direccion_aproximada": report_data.get("direccion_texto_usuario", report_data.get("ubicacion_procesada_para_mostrar")),
-            "ciudad": "Barranquilla", 
-            "departamento": "Atlántico", 
-            "gravedad_estimada": report_data.get("gravedad_estimada_api", "LEVE"), 
-            "reportado_por_telegram_user_id": str(update.effective_user.id),
-            "reportado_por_nombre": update.effective_user.full_name or update.effective_user.username,
-        }
-        
-        payload_cleaned_for_api = {k: v for k, v in api_payload.items() if v is not None}
-
-        logger.info(f"ACCIDENT_HANDLER: Enviando reporte final a la API: {payload_cleaned_for_api} para user_id {update.effective_user.id}")
-        
-        processing_msg = await update.message.reply_text("Procesando tu reporte, un momento por favor... 📡", reply_markup=ReplyKeyboardRemove())
-
-        api_call_response = await report_accident_api(payload_cleaned_for_api) 
-
-        if api_call_response and not api_call_response.get("error") and api_call_response.get("id_accidente"): 
-            success_msg_text = (
-                f"¡Excelente, {update.effective_user.first_name}! 👍\n"
-                f"Tu reporte de accidente ha sido enviado y registrado con éxito.\n"
-                f"El ID de tu reporte es: *{api_call_response.get('id_accidente')}*\n\n"
-                "Gracias por tu colaboración para mejorar la seguridad vial en Barranquilla."
-            )
-            await context.bot.edit_message_text( 
-                chat_id=update.effective_chat.id,
-                message_id=processing_msg.message_id,
-                text=success_msg_text,
-                parse_mode='Markdown'
-            )
-            logger.info(f"ACCIDENT_HANDLER: Reporte enviado exitosamente a la API. ID: {api_call_response.get('id_accidente')} para user_id {update.effective_user.id}")
-        else:
-            error_detail_from_api = "No se pudo procesar el reporte en el servidor."
-            if isinstance(api_call_response, dict) and api_call_response.get("detail"):
-                 error_detail_from_api = api_call_response.get("detail")
-            
-            error_msg_text = (
-                f"Lo siento mucho, {update.effective_user.first_name}, pero parece que hubo un problema al enviar tu reporte al sistema:\n"
-                f"_{error_detail_from_api}_\n\n"
-                "Por favor, intenta de nuevo más tarde. Si el problema persiste, puedes contactar a soporte (si hay un canal definido)."
-            )
-            await context.bot.edit_message_text(
-                chat_id=update.effective_chat.id,
-                message_id=processing_msg.message_id,
-                text=error_msg_text,
-                parse_mode='Markdown'
-            )
-            logger.error(f"ACCIDENT_HANDLER: Error al enviar reporte a la API: {api_call_response} para user_id {update.effective_user.id}")
-
-        context.user_data.pop('current_accident_report_data', None) 
-        return ConversationHandler.END 
+    # Construir el payload EXACTAMENTE como se especificó
+    report_data_from_user = context.user_data.get('current_accident_report_v2_data', {})
+    api_payload = {
+        "fecha": report_data_from_user.get('fecha', datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace("+00:00", "Z")),
+        "sexo_victima": report_data_from_user.get('sexo_victima', "O"), # Default a 'O' si no se proveyó
+        "edad_victima": int(report_data_from_user.get('edad_victima', 0)),
+        "cantidad_victima": int(report_data_from_user.get('cantidad_victima', 1)),
+        "condicion_victima_id": int(report_data_from_user.get('condicion_victima_id', 0)), # Default a 0 si no se proveyó
+        "gravedad_victima_id": int(report_data_from_user.get('gravedad_victima_id', 0)),
+        "tipo_accidente_id": int(report_data_from_user.get('tipo_accidente_id', 0)),
+        "ubicacion_id": int(report_data_from_user.get('ubicacion_id', 0)) # Default a 0 si no se proveyó
+        # El campo "usuario_id" se añadirá cuando se implemente el login.
+    }
     
-    elif "❌ No, cancelar y corregir" in user_final_choice:
-        await update.message.reply_text(
-            "Entendido. El reporte ha sido cancelado.\n"
-            "Puedes iniciar uno nuevo con /reportar cuando quieras y proporcionar la información correcta desde el principio.",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        context.user_data.pop('current_accident_report_data', None)
-        return ConversationHandler.END 
-    else: 
-        await update.message.reply_text("Por favor, elige '✅ Sí, enviar reporte ahora' o '❌ No, cancelar y corregir' usando los botones.")
-        return REPORTING_ACCIDENT_CONFIRMATION
+    # TODO: Añadir usuario_id del usuario logueado (Parte 2)
+    # backend_user_id = context.user_data.get('backend_user_id')
+    # if backend_user_id:
+    #     api_payload['usuario_id'] = backend_user_id
+    # else:
+    #     logger.error("ACCIDENT_HANDLER_V2: Falta backend_user_id para el reporte. El usuario debería estar logueado.")
+    #     await update.message.reply_text("Error: No se pudo identificar tu usuario. Por favor, intenta iniciar sesión de nuevo con /login.", reply_markup=ReplyKeyboardRemove())
+    #     return ConversationHandler.END
 
 
-async def cancel_report_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.effective_user
-    logger.info(f"ACCIDENT_HANDLER: Usuario {user.full_name if user else 'Desconocido'} ({user.id if user else 'N/A'}) canceló el reporte de accidente con /cancelar.")
-    context.user_data.pop('current_accident_report_data', None)
-    context.user_data.pop('llm_pre_extracted_report_entities', None) 
-    await update.message.reply_text(
-        "El proceso de reporte de accidente ha sido cancelado.\n"
-        "Si necesitas algo más, no dudes en preguntar o puedes iniciar de nuevo con /start o /ayuda.",
-        reply_markup=ReplyKeyboardRemove(), 
-    )
-    return ConversationHandler.END 
+    logger.info(f"ACCIDENT_HANDLER_V2: Enviando payload final a la API: {api_payload}")
+    processing_msg = await update.message.reply_text("Procesando tu reporte...", reply_markup=ReplyKeyboardRemove())
+    
+    api_response = await report_accident_api(api_payload)
 
-# --- Definición del ConversationHandler para el Reporte de Accidentes (TU CÓDIGO EXISTENTE) ---
-report_accident_conversation_handler = ConversationHandler(
-    entry_points=[CommandHandler("reportar", start_accident_report)],
+    if api_response and not api_response.get("error") and (api_response.get("id") or api_response.get("id_accidente")):
+        accidente_id_creado = api_response.get("id", api_response.get("id_accidente", "N/A"))
+        success_msg = (f"¡Reporte enviado con éxito! 👍\nID del Accidente Registrado: *{accidente_id_creado}*\n\nGracias por tu colaboración.")
+        await context.bot.edit_message_text(chat_id=update.effective_chat.id, message_id=processing_msg.message_id, text=success_msg, parse_mode='Markdown')
+    else:
+        error_detail = "No se pudo procesar el reporte en el servidor."
+        if isinstance(api_response, dict):
+            error_detail = api_response.get("detail", str(api_response.get("error_message", str(api_response)))) # Intentar obtener más detalles
+        await context.bot.edit_message_text(chat_id=update.effective_chat.id, message_id=processing_msg.message_id, text=f"Hubo un problema al enviar el reporte: _{error_detail}_")
+        logger.error(f"ACCIDENT_HANDLER_V2: Error al enviar reporte a API: {api_response}")
+
+    context.user_data.pop('current_accident_report_v2_data', None)
+    return ConversationHandler.END
+
+async def cancel_report_v2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Cancela el flujo de reporte v2."""
+    await update.message.reply_text("Reporte de accidente cancelado.", reply_markup=ReplyKeyboardRemove())
+    context.user_data.pop('current_accident_report_v2_data', None)
+    return ConversationHandler.END
+
+# Nuevo ConversationHandler para el flujo de reporte v2 con opciones
+report_accident_v2_conv_handler = ConversationHandler(
+    entry_points=[CommandHandler("reportar", start_accident_report_v2)],
     states={
-        REPORTING_ACCIDENT_DESCRIPTION: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_description_handler)
-        ],
-        REPORTING_ACCIDENT_LOCATION: [
-            MessageHandler(filters.LOCATION | (filters.TEXT & ~filters.COMMAND), accident_location_handler),
-        ],
-        REPORTING_ACCIDENT_DATETIME_CHOICE: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_datetime_choice_handler)
-        ],
-        REPORTING_ACCIDENT_DATETIME_SPECIFIC: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_datetime_specific_handler)
-        ],
-        REPORTING_ACCIDENT_GRAVEDAD: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_gravity_handler)
-        ],
-        REPORTING_ACCIDENT_CONFIRMATION: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, accident_final_confirmation_handler)
-        ],
+        REPORTING_ACCIDENT_DATETIME_CHOICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_accident_datetime_choice)],
+        REPORTING_VICTIM_SEX: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_victim_sex)],
+        REPORTING_VICTIM_AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_victim_age)],
+        REPORTING_VICTIM_COUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_victim_count)],
+        REPORTING_VICTIM_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_victim_condition)],
+        REPORTING_ACCIDENT_GRAVITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_accident_gravity)],
+        REPORTING_ACCIDENT_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_accident_type)],
+        REPORTING_BARRIO_SELECTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_barrio_selection)], # Nuevo handler para barrio
+        REPORTING_ACCIDENT_CONFIRMATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, accident_final_confirmation_v2)],
     },
-    fallbacks=[
-        CommandHandler("cancelar", cancel_report_handler),
-        MessageHandler(filters.ALL, 
-                       lambda update, context: update.message.reply_text(
-                           "Hmm, no esperaba ese tipo de mensaje ahora. 🤔\n"
-                           "Estamos en medio de un reporte de accidente. Por favor, sigue las instrucciones, "
-                           "o usa /cancelar para salir del proceso de reporte."
-                       ))
-    ],
+    fallbacks=[CommandHandler("cancelar", cancel_report_v2)],
 )
 
-# --- NUEVAS FUNCIONES Y HANDLERS AÑADIDOS ABAJO PARA CONSULTAR DETALLES DE ACCIDENTE ---
 
-# --- FUNCIÓN _format_accidente_details ACTUALIZADA ---
+# --- FUNCIONES EXISTENTES PARA CONSULTA DE DETALLES (sin cambios, ya deberían estar en tu archivo) ---
+# (Asegúrate de que estas funciones (_format_accidente_details, detalle_accidente_command, 
+#  handle_natural_language_accident_query) estén presentes y sean las últimas versiones que te di)
 def _format_accidente_details(accidente_data: Optional[Dict[str, Any]]) -> str:
-    """
-    Formatea los datos del accidente para mostrarlos de forma legible al usuario.
-    Args:
-        accidente_data: Un diccionario con los datos del accidente o None.
-    Returns:
-        Un string formateado con los detalles del accidente.
-    """
-    if not accidente_data:
-        return "No se pudo obtener la información del accidente o no se encontraron datos."
-
-    # ID del accidente
-    id_accidente = accidente_data.get('id', 'N/A') # El JSON de ejemplo usa 'id' para el accidente principal
-
-    # Fecha y Hora
+    if not accidente_data: return "No se pudo obtener la información del accidente o no se encontraron datos."
+    id_accidente = accidente_data.get('id', 'N/A')
     fecha_hora_display = "No especificada"
-    fecha_hora_iso = accidente_data.get('fecha') # El JSON de ejemplo usa 'fecha'
+    fecha_hora_iso = accidente_data.get('fecha') 
     if fecha_hora_iso:
         try:
-            # Asumimos que la fecha viene en formato ISO 8601 como "2018-01-03T00:00:00"
-            # Si no tiene zona horaria, la tratamos como UTC y la convertimos a Colombia
             dt_obj = datetime.datetime.fromisoformat(str(fecha_hora_iso).replace("Z", "+00:00"))
-            if dt_obj.tzinfo is None: # Si es naive
-                dt_utc = dt_obj.replace(tzinfo=datetime.timezone.utc) # Asumir UTC si es naive
-            else:
-                dt_utc = dt_obj.astimezone(datetime.timezone.utc) # Convertir a UTC si ya tiene tz
-            
+            dt_utc = dt_obj.astimezone(datetime.timezone.utc) if dt_obj.tzinfo else dt_obj.replace(tzinfo=datetime.timezone.utc)
             dt_colombia = dt_utc.astimezone(COLOMBIA_TZ)
             fecha_hora_display = dt_colombia.strftime("%d de %B de %Y a las %I:%M %p (%Z)")
-        except (ValueError, TypeError) as e:
-            logger.error(f"Error al formatear fecha '{fecha_hora_iso}': {e}")
-            fecha_hora_display = str(fecha_hora_iso) # Mostrar como está si no se puede parsear
-
-    # Descripción (si tu API la devuelve, el JSON de ejemplo no la tiene directamente en el nivel superior)
-    # Si la descripción está en otro lado o no existe para este endpoint, ajusta o elimina.
-    descripcion_display = accidente_data.get('descripcion', 'No especificada por la API para este ID.')
-
-    # Ubicación
-    ubicacion_obj = accidente_data.get('ubicacion')
-    ubicacion_display = "No especificada"
-    if ubicacion_obj and isinstance(ubicacion_obj, dict):
-        # Construir una dirección más completa si es posible
-        # Ejemplo: "CALLE 27B con CARRERA 20B, Barrio Los Trupillos"
-        via1_obj = ubicacion_obj.get('primer_via')
-        via2_obj = ubicacion_obj.get('segunda_via')
-        barrio_obj = ubicacion_obj.get('barrio')
-        
-        dir_parts = []
-        if via1_obj and via1_obj.get('tipo_via', {}).get('nombre') and via1_obj.get('numero_via'):
-            dir_parts.append(f"{via1_obj['tipo_via']['nombre']} {via1_obj['numero_via']}")
-        if via2_obj and via2_obj.get('tipo_via', {}).get('nombre') and via2_obj.get('numero_via'):
-            dir_parts.append(f"{via2_obj['tipo_via']['nombre']} {via2_obj['numero_via']}")
-        
-        direccion_vias = " con ".join(dir_parts) if len(dir_parts) == 2 else (dir_parts[0] if dir_parts else "")
-
-        barrio_nombre = barrio_obj.get('nombre', '') if barrio_obj else ''
-        
-        if direccion_vias and barrio_nombre:
-            ubicacion_display = f"{direccion_vias}, Barrio {barrio_nombre}"
-        elif direccion_vias:
-            ubicacion_display = direccion_vias
-        elif barrio_nombre:
-            ubicacion_display = f"Barrio {barrio_nombre}"
-        
-        complemento = ubicacion_obj.get('complemento')
-        if complemento:
-            ubicacion_display += f" ({complemento})"
-        
-        lat = ubicacion_obj.get('latitud')
-        lon = ubicacion_obj.get('longitud')
-        if lat is not None and lon is not None:
-             ubicacion_display += f" (Lat: {lat:.5f}, Lon: {lon:.5f})"
-
-    # Gravedad
-    gravedad_obj = accidente_data.get('gravedad')
-    gravedad_display = "No especificada"
-    if gravedad_obj and isinstance(gravedad_obj, dict):
-        gravedad_display = gravedad_obj.get('nivel_gravedad', 'No especificada')
-
-    # Tipo de Accidente
-    tipo_acc_obj = accidente_data.get('tipo_accidente')
-    tipo_accidente_display = "No especificado"
-    if tipo_acc_obj and isinstance(tipo_acc_obj, dict):
-        tipo_accidente_display = tipo_acc_obj.get('nombre', 'No especificado')
-        
-    # Detalles de la víctima (del JSON de ejemplo)
-    sexo_victima_display = accidente_data.get('sexo_victima', 'N/A')
-    edad_victima_display = accidente_data.get('edad_victima', 'N/A')
-    cantidad_victima_display = accidente_data.get('cantidad_victima', 'N/A')
-    
-    condicion_victima_obj = accidente_data.get('condicion_victima')
-    condicion_victima_display = "No especificada"
-    if condicion_victima_obj and isinstance(condicion_victima_obj, dict):
-        condicion_victima_display = condicion_victima_obj.get('rol_victima', 'No especificada')
-
-    # Usuario que reportó (si está disponible y es relevante mostrarlo)
-    # usuario_obj = accidente_data.get('usuario')
-    # reportado_por_display = "No especificado"
-    # if usuario_obj and isinstance(usuario_obj, dict):
-    #     reportado_por_display = usuario_obj.get('username', 'No especificado')
-
+        except Exception as e: logger.error(f"Error al formatear fecha '{fecha_hora_iso}': {e}"); fecha_hora_display = str(fecha_hora_iso)
+    ubicacion_obj = accidente_data.get('ubicacion', {})
+    ubicacion_display_parts = []
+    if via1 := ubicacion_obj.get('primer_via', {}): ubicacion_display_parts.append(f"{via1.get('tipo_via', {}).get('nombre', '')} {via1.get('numero_via', '')}".strip())
+    if via2 := ubicacion_obj.get('segunda_via', {}): ubicacion_display_parts.append(f"{via2.get('tipo_via', {}).get('nombre', '')} {via2.get('numero_via', '')}".strip())
+    ubicacion_vias = " con ".join(filter(None, ubicacion_display_parts))
+    barrio_nombre = ubicacion_obj.get('barrio', {}).get('nombre', '')
+    ubicacion_display = f"{ubicacion_vias}, Barrio {barrio_nombre}".strip(", ") if ubicacion_vias or barrio_nombre else "No especificada"
+    if complemento := ubicacion_obj.get('complemento'): ubicacion_display += f" ({complemento})"
+    if (lat := ubicacion_obj.get('latitud')) and (lon := ubicacion_obj.get('longitud')): ubicacion_display += f" (Lat: {lat:.5f}, Lon: {lon:.5f})"
+    gravedad_display = accidente_data.get('gravedad', {}).get('nivel_gravedad', 'No especificada')
+    tipo_accidente_display = accidente_data.get('tipo_accidente', {}).get('nombre', 'No especificado')
     details = [
-        f"📄 *Detalles del Accidente (ID: {id_accidente})*",
-        "-------------------------------------",
-        f"🗓️ *Fecha y Hora*: {fecha_hora_display}",
-        f"💥 *Tipo de Accidente*: {tipo_accidente_display}",
-        f"📍 *Ubicación*: {ubicacion_display}",
-        # f"📝 *Descripción (si aplica)*: {descripcion_display}", # Descomentar si tienes descripción
-        f"📊 *Gravedad Víctima*: {gravedad_display}",
-        f"👤 *Condición Víctima*: {condicion_victima_display}",
-        f"🚻 *Sexo Víctima*: {sexo_victima_display}",
-        f"🎂 *Edad Víctima*: {edad_victima_display}",
-        f"🔢 *Cantidad de Víctimas en este registro*: {cantidad_victima_display}",
-        # f"🗣️ Reportado por: {reportado_por_display}", # Descomentar si es relevante
+        f"📄 *Detalles del Accidente (ID: {id_accidente})*", "-------------------------------------",
+        f"🗓️ *Fecha y Hora*: {fecha_hora_display}", f"💥 *Tipo de Accidente*: {tipo_accidente_display}",
+        f"📍 *Ubicación*: {ubicacion_display}", f"📊 *Gravedad Víctima*: {gravedad_display}",
+        f"👤 *Condición Víctima*: {accidente_data.get('condicion_victima', {}).get('rol_victima', 'No especificada')}",
+        f"🚻 *Sexo Víctima*: {accidente_data.get('sexo_victima', 'N/A')}",
+        f"🎂 *Edad Víctima*: {accidente_data.get('edad_victima', 'N/A')}",
+        f"🔢 *Cantidad de Víctimas*: {accidente_data.get('cantidad_victima', 'N/A')}",
     ]
     return "\n".join(details)
 
 async def detalle_accidente_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Maneja el comando /detalle_accidente <ID> para obtener información de un accidente directamente.
-    """
-    user_id = update.effective_user.id
-    logger.info(f"ACCIDENT_HANDLER: Usuario {user_id} ejecutó /detalle_accidente con args: {context.args}")
-
-    if not context.args: 
-        await update.message.reply_text(
-            "Por favor, proporciona el ID del accidente después del comando.\n"
-            "Ejemplo: `/detalle_accidente TU_ID_AQUI`",
-            parse_mode='Markdown'
-        )
-        return
-
+    user_id = update.effective_user.id; logger.info(f"ACCIDENT_HANDLER: Usuario {user_id} ejecutó /detalle_accidente con args: {context.args}")
+    if not context.args: await update.message.reply_text("Por favor, proporciona el ID del accidente. Ejemplo: `/detalle_accidente TU_ID`", parse_mode='Markdown'); return
     accidente_id_input = context.args[0] 
-    
     await update.message.reply_text(f"Buscando información para el accidente ID: `{accidente_id_input}`...", parse_mode='Markdown')
-    
     accidente_info = await get_accidente_by_id(accidente_id_input) 
-
-    if accidente_info:
-        response_message = _format_accidente_details(accidente_info)
-    else:
-        response_message = f"No se encontró información para el accidente con ID: `{accidente_id_input}` o hubo un error al buscarlo."
-    
+    response_message = _format_accidente_details(accidente_info) if accidente_info else f"No se encontró información para el accidente ID: `{accidente_id_input}`."
     await update.message.reply_text(response_message, parse_mode='Markdown')
 
 async def handle_natural_language_accident_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Intenta extraer un ID de accidente de un mensaje de texto normal (no un comando)
-    y obtener su información. Este handler debe registrarse DESPUÉS de los CommandHandlers.
-    """
-    if not update.message or not update.message.text: 
-        return
-        
-    message_text = update.message.text
-    user_id = update.effective_user.id
+    if not update.message or not update.message.text: return
+    message_text = update.message.text; user_id = update.effective_user.id
     logger.info(f"ACCIDENT_HANDLER (Natural Language): Usuario {user_id} envió mensaje: '{message_text}'")
-    
-    id_patterns_with_keywords = [
-        r"(?:detalle del accidente|informaci[oó]n del accidente|qu[eé] sabes del accidente|reporte del accidente|accidente|ver accidente)\s+([a-fA-F0-9]{1,24})", # ObjectId o ID numérico corto con keyword
-        r"(?:detalle del accidente|informaci[oó]n del accidente|qu[eé] sabes del accidente|reporte del accidente|accidente|ver accidente)\s+(\d+)", 
-    ]
-    direct_id_patterns = [
-        r"\b([a-fA-F0-9]{24})\b", 
-        r"\b(\d{1,5})\b", # IDs numéricos de 1 a 5 dígitos (como el ID 12 de tu ejemplo)
-    ]
-
+    keyword_phrases = (r"dame\s+(los\s+)?detalles\s+(de\s+(la\s+|el\s+)?ID|del\s+accidente)|informaci[oó]n\s+del\s+(ID|accidente)|info\s+del\s+(ID|accidente)|qu[eé]\s+sabes\s+del\s+accidente|reporte\s+del\s+accidente|ver\s+accidente|accidente|ID|identificador")
+    id_capture = r"([a-f0-9]{24}|\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b|\b\d{1,8}\b)" 
+    pattern_with_keywords = rf"(?:{keyword_phrases})\s*{id_capture}"
+    direct_id_patterns_list = [rf"\b{id_capture}\b"] 
     accidente_id_extracted = None
-
-    for pattern_str in id_patterns_with_keywords:
-        match = re.search(pattern_str, message_text, re.IGNORECASE)
-        if match:
-            accidente_id_extracted = match.group(1) 
-            break
-    
-    if not accidente_id_extracted:
-        for pattern_str in direct_id_patterns:
-            match = re.search(pattern_str, message_text) 
-            if match:
-                accidente_id_extracted = match.group(1)
-                break
-    
-    if accidente_id_extracted:
-        accidente_id_extracted = accidente_id_extracted.strip() 
-        logger.info(f"ACCIDENT_HANDLER (Natural Language): ID de accidente '{accidente_id_extracted}' extraído del mensaje: '{message_text}'")
-        
-        await update.message.reply_text(f"Detecté que podrías estar preguntando por el accidente ID: `{accidente_id_extracted}`. Permíteme buscarlo...", parse_mode='Markdown')
-        
-        accidente_info = await get_accidente_by_id(accidente_id_extracted)
-        
-        if accidente_info:
-            response_message = _format_accidente_details(accidente_info)
-        else:
-            response_message = f"No pude encontrar información para el accidente con ID: `{accidente_id_extracted}`."
-        
-        await update.message.reply_text(response_message, parse_mode='Markdown')
-        
+    match_keywords = re.search(pattern_with_keywords, message_text, re.IGNORECASE)
+    if match_keywords: accidente_id_extracted = match_keywords.group(match_keywords.lastindex) 
     else:
-        logger.info(f"ACCIDENT_HANDLER (Natural Language): No se detectó un ID de accidente claro en: '{message_text}'. El mensaje pasará a otros handlers.")
+        for direct_pattern in direct_id_patterns_list:
+            match_direct = re.search(direct_pattern, message_text, re.IGNORECASE)
+            if match_direct: accidente_id_extracted = match_direct.group(1); break 
+    if accidente_id_extracted:
+        accidente_id_extracted = accidente_id_extracted.strip()
+        logger.info(f"ACCIDENT_HANDLER (Natural Language): ID '{accidente_id_extracted}' extraído de: '{message_text}'")
+        await update.message.reply_text(f"Detecté que preguntas por el ID: `{accidente_id_extracted}`. Buscando...", parse_mode='Markdown')
+        accidente_info = await get_accidente_by_id(accidente_id_extracted)
+        response_message = _format_accidente_details(accidente_info) if accidente_info else f"No encontré info para ID: `{accidente_id_extracted}`."
+        await update.message.reply_text(response_message, parse_mode='Markdown')
+    else: logger.info(f"ACCIDENT_HANDLER (Natural Language): No se detectó ID en: '{message_text}'. Pasa a otros handlers.")
+

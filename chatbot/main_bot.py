@@ -19,7 +19,7 @@ from chatbot.handlers import start_handler
 from chatbot.handlers.general_handler import general_message_handler, reset_chat_command 
 
 from chatbot.handlers.accident_handler import (
-    report_accident_conversation_handler, 
+    report_accident_v2_conv_handler, # <--- CAMBIO AQUÍ
     detalle_accidente_command,            
     handle_natural_language_accident_query 
 )
@@ -55,30 +55,28 @@ def main() -> None:
 
     logger.info("Registrando handlers...")
 
-    # Grupo 0 (por defecto) para handlers más específicos o que deben evaluarse primero.
-    application.add_handler(CommandHandler(["start", "ayuda", "help"], start_handler.start), group=0)
-    logger.debug("Handler para /start, /ayuda, /help registrado en grupo 0.")
+    application.add_handler(CommandHandler(["start", "ayuda", "help"], start_handler.start))
+    logger.debug("Handler para /start, /ayuda, /help registrado.")
 
-    application.add_handler(CommandHandler("reset_chat", reset_chat_command), group=0)
-    logger.debug("Handler para /reset_chat registrado en grupo 0.")
+    application.add_handler(CommandHandler("reset_chat", reset_chat_command))
+    logger.debug("Handler para /reset_chat registrado.")
 
-    application.add_handler(report_accident_conversation_handler, group=0) # ConversationHandlers también pueden tener grupo.
-    logger.debug("ConversationHandler para reporte de accidentes registrado en grupo 0.")
+    application.add_handler(report_accident_v2_conv_handler, group=0)
+    logger.debug("ConversationHandler para reporte de accidentes registrado.")
 
-    application.add_handler(CommandHandler("detalle_accidente", detalle_accidente_command), group=0)
-    logger.debug("CommandHandler para /detalle_accidente registrado en grupo 0.")
+    application.add_handler(CommandHandler("detalle_accidente", detalle_accidente_command))
+    logger.debug("CommandHandler para /detalle_accidente registrado.")
 
-    # MessageHandler para buscar IDs en lenguaje natural, también en grupo 0.
-    # Se ejecutará después de los CommandHandlers dentro del mismo grupo si los filtros coinciden.
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_natural_language_accident_query), group=0)
-    logger.debug("MessageHandler para consultas de accidentes en lenguaje natural (busca IDs) registrado en grupo 0.")
+    # --- CAMBIO DE ORDEN TEMPORAL PARA PRUEBA ---
+    # 1. Registramos PRIMERO el MessageHandler general (LLM)
+    application.add_handler(general_message_handler) 
+    logger.debug("MessageHandler general para texto (LLM) registrado (TEMPORALMENTE PRIMERO de los dos MessageHandlers).")
+
+    # 2. Registramos DESPUÉS el MessageHandler para buscar IDs en lenguaje natural
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_natural_language_accident_query))
+    logger.debug("MessageHandler para consultas de accidentes en lenguaje natural (busca IDs) registrado (TEMPORALMENTE SEGUNDO de los dos MessageHandlers).")
+    # --- FIN DEL CAMBIO DE ORDEN ---
     
-    # MessageHandler general (LLM) en un grupo posterior (grupo 1).
-    # Se ejecutará si ningún handler en el grupo 0 manejó completamente el update.
-    application.add_handler(general_message_handler, group=1) 
-    logger.debug("MessageHandler general para texto (LLM) registrado en grupo 1.")
-    
-    # Fallback para comandos desconocidos (opcional, en un grupo aún posterior o el mismo que el LLM general).
     async def unknown_command_or_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if update.message and update.message.text: 
             if update.message.text.startswith('/'):
@@ -87,8 +85,6 @@ def main() -> None:
                     "🤔 Lo siento, no reconozco ese comando.\n"
                     "Puedes intentar con /start o /ayuda para ver las opciones disponibles."
                 )
-    application.add_handler(MessageHandler(filters.COMMAND, unknown_command_or_message_handler), group=2) # Ejemplo en grupo 2
-    logger.debug("MessageHandler para comandos desconocidos registrado en grupo 2.")
     
     logger.info("🤖 Bot configurado y listo. Iniciando polling...")
     try:
