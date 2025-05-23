@@ -24,24 +24,23 @@
   min-height: 100vh;
   padding-top: 1.5rem;
   padding-bottom: 2rem;
-  padding-left: 0.25rem; /* Padding lateral MUY reducido para móviles más pequeños */
-  padding-right: 0.25rem; /* Padding lateral MUY reducido para móviles más pequeños */
+  padding-left: 0.5rem; /* Padding lateral reducido para móviles muy pequeños */
+  padding-right: 0.5rem; /* Padding lateral reducido para móviles muy pequeños */
   display: flex;
   justify-content: center;
   align-items: flex-start;
   box-sizing: border-box;
-  width: 100%;
-  overflow-x: hidden; /* Prevenir desbordamiento horizontal en el contenedor de página */
+  width: 100%; /* Asegurar que el contenedor de página no se desborde */
 }
 
 .gestion-container-card {
   background-color: #ffffff;
   border-radius: var(--card-border-radius);
   box-shadow: var(--card-shadow);
-  width: 100%;
-  max-width: 960px;
-  margin: 0.25rem 0; /* Margen vertical reducido */
-  padding: 0.5rem; /* Padding MUY reducido para móviles más pequeños */
+  width: 100%; /* El card ocupa el 100% del ancho disponible en su padre */
+  max-width: 960px; /* Pero no más de 960px */
+  margin: 0.5rem 0; /* Margen vertical reducido para móviles */
+  padding: 0.75rem; /* Padding reducido para móviles */
   box-sizing: border-box;
 }
 
@@ -49,14 +48,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem; /* Gap reducido */
-  margin-bottom: 1rem; /* Margen reducido */
-  padding-bottom: 0.75rem; /* Padding reducido */
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .gestion-title {
-  font-size: 1.3rem; /* Tamaño ajustado */
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--primary-color);
   margin: 0;
@@ -65,15 +64,15 @@
 .gestion-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Gap reducido */
+  gap: 0.75rem;
   width: 100%;
 }
 
 .gestion-actions .btn {
   width: 100%;
   text-align: center;
-  font-size: 0.8rem; /* Fuente reducida */
-  padding: 0.4rem 0.7rem; /* Padding reducido */
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
 }
 
 .btn-fixed-width {
@@ -82,24 +81,24 @@
 
 .table-responsive-container {
   overflow-x: auto;
-  margin-top: 1rem; /* Margen reducido */
-  width: 100%;
+  margin-top: 1.5rem;
+  width: 100%; /* Debe ser 100% del content-box de .gestion-container-card */
   border: 1px solid var(--border-color);
   border-radius: var(--card-border-radius);
-  box-sizing: border-box;
+  box-sizing: border-box; /* Asegurar que el borde no añada al ancho */
 }
 
 .user-table {
-  width: 100%;
-  min-width: 500px; /* Reducir min-width si es posible, o aceptar scroll más agresivo */
+  width: 100%; /* La tabla intenta ocupar el 100% de su contenedor (table-responsive-container) */
+  min-width: 600px; /* PERO, no será menor a 600px, forzando scroll si el contenedor es más pequeño */
   border-collapse: collapse;
-  font-size: 0.75rem; /* Fuente de tabla reducida */
+  font-size: 0.8rem;
 }
 
 .user-table th,
 .user-table td {
   border: 1px solid var(--border-color);
-  padding: 0.4rem 0.5rem; /* Padding de celdas reducido */
+  padding: 0.5rem 0.6rem;
   text-align: left;
   vertical-align: middle;
   white-space: nowrap;
@@ -114,57 +113,54 @@
   z-index: 1;
 }
 
-/* Columna Fija (Sticky) */
 .user-table th:first-child,
 .user-table td:first-child {
   position: sticky;
   left: 0;
-  background-color: #f0f0f0; /* Un fondo ligeramente diferente para la columna fija */
+  background-color: var(--light-gray-bg);
   z-index: 2;
-  /* Considerar una sombra para indicar que está por encima */
-  /* box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); */
 }
 .user-table th:first-child {
-    background-color: var(--primary-color); /* Mantener el color del encabezado */
-    color: var(--text-color-light);
+    background-color: var(--primary-color);
     z-index: 3;
 }
-/* Quitar el fondo extra de las celdas de datos fijas si la fila ya tiene un fondo alterno */
+
+.user-table tbody tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
 .user-table tbody tr:nth-child(even) td:first-child {
-    background-color: #e9ecef; /* Un poco más oscuro que el fondo de la fila par */
+    background-color: #f0f0f0;
 }
 .user-table tbody tr:nth-child(odd) td:first-child {
-    background-color: #fdfdfd; /* Un poco más claro o igual que el fondo de la fila impar */
+    background-color: #ffffff;
 }
 
-.user-table tbody tr:hover td:first-child { /* Mantener el fondo de la primera celda al hacer hover */
-    background-color: #dde6ef; /* Un color de hover para la celda fija */
+.user-table tbody tr:hover {
+  background-color: #e9ecef;
 }
-.user-table tbody tr:hover td { /* Resto de celdas en hover */
-    background-color: #e9ecef;
+.user-table tbody tr:hover td:first-child {
+    background-color: #dde6ef;
 }
-
 
 .actions-cell {
   text-align: center;
-  white-space: normal; /* Permitir que los botones se envuelvan */
-  min-width: 80px; /* Ancho mínimo muy reducido */
-  padding: 0.4rem; /* Padding específico para la celda de acciones */
+  white-space: normal;
+  min-width: 100px; /* Ancho mínimo reducido para acciones en móvil */
 }
 
 .actions-cell .btn-action-group {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem; /* Gap muy reducido */
+    gap: 0.3rem;
 }
 
 .btn-action {
-  padding: 0.25rem 0.4rem; /* Padding muy reducido */
-  font-size: 0.7rem; /* Fuente muy reducida */
-  min-width: 60px; /* Ancho mínimo para botones */
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  min-width: auto;
   width: 100%;
-  max-width: 80px; /* Max width para botones */
+  max-width: 100px;
   display: inline-block;
   box-sizing: border-box;
 }
@@ -172,17 +168,30 @@
 .btn-edit, .btn-delete {
   color: var(--text-color-dark) !important;
 }
-.btn-edit { background-color: var(--warning-color); border-color: var(--warning-color); }
-.btn-edit:hover { background-color: #e0a800; border-color: #d39e00; }
-.btn-delete { background-color: var(--danger-color); border-color: var(--danger-color); }
-.btn-delete:hover { background-color: #c82333; border-color: #bd2130; }
+
+.btn-edit {
+  background-color: var(--warning-color);
+  border-color: var(--warning-color);
+}
+.btn-edit:hover {
+  background-color: #e0a800;
+  border-color: #d39e00;
+}
+
+.btn-delete {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+.btn-delete:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
 
 .no-data-message {
   text-align: center;
-  padding: 1.5rem;
+  padding: 2rem;
   font-style: italic;
   color: var(--text-color-muted);
-  font-size: 0.9rem;
 }
 
 .btn {
@@ -200,82 +209,29 @@
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-.btn-primary { color: #fff; background-color: var(--primary-color); border-color: var(--primary-color); }
-.btn-primary:hover { background-color: var(--primary-color-dark); border-color: var(--primary-color-dark); }
-.btn-secondary { color: #fff; background-color: var(--secondary-color); border-color: var(--secondary-color); }
-.btn-secondary:hover { background-color: #545b62; border-color: #545b62; }
+
+.btn-primary {
+  color: #fff;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.btn-primary:hover {
+  background-color: var(--primary-color-dark);
+  border-color: var(--primary-color-dark);
+}
+
+.btn-secondary {
+  color: #fff;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+.btn-secondary:hover {
+  background-color: #545b62;
+  border-color: #545b62;
+}
 
 .column-optional-mobile {
   /* Por defecto visible */
-}
-
-/* Estilos para los Modales (Añadir/Editar Usuario) */
-.user-form-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro semi-transparente */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1050; /* Asegurar que esté por encima de otros elementos */
-  padding: 1rem; /* Padding para que el contenido no toque los bordes en móvil */
-  box-sizing: border-box;
-}
-
-.user-form-modal-content {
-  background-color: #fff;
-  padding: 1.5rem; /* Padding interno del modal */
-  border-radius: var(--card-border-radius);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  width: 100%;
-  max-width: 500px; /* Ancho máximo del modal */
-  max-height: 90vh; /* Altura máxima, permitir scroll si es más alto */
-  overflow-y: auto; /* Scroll vertical si el contenido es largo */
-  box-sizing: border-box;
-}
-
-.user-form-modal-content h3 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  font-size: 1.4rem;
-  color: var(--primary-color);
-  text-align: center;
-}
-
-.user-form-modal .form-group {
-  margin-bottom: 1rem;
-}
-
-.user-form-modal .form-label {
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
-}
-
-.user-form-modal input[type="text"],
-.user-form-modal input[type="email"],
-.user-form-modal input[type="password"] {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.25rem;
-  box-sizing: border-box;
-}
-
-.user-form-modal .form-actions {
-  display: flex;
-  flex-direction: column; /* Botones apilados en modal móvil */
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.user-form-modal .form-actions .btn {
-  width: 100%; /* Botones ocupan todo el ancho */
-  padding: 0.6rem;
-  font-size: 0.9rem;
 }
 
 
@@ -283,17 +239,14 @@
 /* Media Queries */
 /* ------------------------- */
 
-/* Móviles un poco más grandes (a partir de 480px) */
-@media (min-width: 480px) {
+/* Móviles muy pequeños (menos de 480px) */
+@media (max-width: 479px) {
   .gestion-page-container {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: 0.25rem; /* Aún más pequeño si es necesario */
+    padding-right: 0.25rem;
   }
   .gestion-container-card {
-    padding: 0.75rem;
-  }
-  .user-table {
-    min-width: 550px; /* Ajustar según sea necesario */
+    padding: 0.5rem; /* Aún más pequeño si es necesario */
   }
   .user-table th,
   .user-table td {
@@ -301,69 +254,69 @@
     font-size: 0.75rem;
   }
   .column-optional-mobile {
-    /* display: none; Sigue oculto si se definió en el breakpoint anterior */
+    display: none;
   }
   .actions-cell {
-    min-width: 90px;
+    min-width: 90px; /* Reducir más si es necesario */
   }
   .btn-action {
     font-size: 0.7rem;
     padding: 0.25rem 0.4rem;
   }
-  .user-form-modal .form-actions {
-    flex-direction: row; /* Botones del modal en línea */
-    justify-content: flex-end;
-  }
-  .user-form-modal .form-actions .btn {
-    width: auto; /* Ancho automático para botones del modal */
-  }
 }
 
 
-/* Tablets pequeñas (a partir de 576px) */
+/* Tablets pequeñas y móviles grandes (a partir de 576px) */
 @media (min-width: 576px) {
   .gestion-page-container {
-    padding-left: 1rem;
+    padding-left: 1rem; /* Restaurar padding */
     padding-right: 1rem;
   }
   .gestion-container-card {
     padding: 1.5rem;
-    margin: 1rem 0;
+    margin: 1rem 0; /* Restaurar margen vertical */
   }
+
   .gestion-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
   }
+
   .gestion-title {
     font-size: 1.6rem;
   }
+
   .gestion-actions {
     flex-direction: row;
     width: auto;
   }
+
   .gestion-actions .btn {
     width: auto;
     font-size: 0.9rem;
     padding: 0.6rem 1rem;
   }
+
   .btn-fixed-width {
      min-width: 130px;
   }
+
   .user-table {
     font-size: 0.85rem;
-    min-width: 600px; /* Restaurar o ajustar min-width */
   }
+
   .user-table th,
   .user-table td {
     padding: 0.6rem 0.8rem;
-    white-space: normal; /* Permitir wrap en celdas de datos */
+    white-space: normal;
   }
   .user-table th {
-      white-space: nowrap; /* Mantener encabezados en una línea */
+      white-space: nowrap;
   }
+
   .actions-cell {
-    min-width: 120px;
+    min-width: 120px; /* Restaurar ancho mínimo de acciones */
   }
   .actions-cell .btn-action-group {
     flex-direction: row;
@@ -403,7 +356,7 @@
         font-size: 0.85rem;
     }
     .column-optional-mobile {
-        display: table-cell; /* Mostrar columnas opcionales */
+        display: table-cell;
     }
 }
 
@@ -413,6 +366,6 @@
     max-width: 1140px;
   }
   .user-table {
-      min-width: auto; /* En pantallas grandes, la tabla podría no necesitar un min-width forzado */
+      min-width: auto;
   }
 }
