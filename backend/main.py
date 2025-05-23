@@ -12,7 +12,10 @@ origins = [
     'http://localhost:8000',
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "http://192.168.1.100:8000" # IP para obtener datos del sensor
+    "http://192.168.1.100:8000",
+    "http://192.168.137.122:8000",
+    "http://192.168.79.63:8000", 
+
 ]
 
 app.add_middleware(
