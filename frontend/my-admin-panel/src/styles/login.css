@@ -1,6 +1,5 @@
 /* login.css */
 
-/* Fondo con franjas de la bandera de Colombia */
 /* Fondo moderno con degradado para tema de control de accidentalidad */
 body {
   margin: 0;
@@ -18,91 +17,93 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px; /* Espacio en los bordes para móviles */
+  box-sizing: border-box;
 }
 
-/* Contenedor principal que organiza los elementos horizontalmente */
+/* Contenedor principal que organiza los elementos */
 .login-container {
   display: flex;
-  justify-content: center;
-  align-items: center; /* Centramos verticalmente */
-  gap: 40px;
+  flex-direction: column; /* Apilado vertical en móviles por defecto */
+  align-items: center; /* Centrar elementos cuando están en columna */
+  gap: 25px; /* Espacio entre login-box y welcome-box en móviles */
   max-width: 1200px;
+  width: 100%; /* Ocupar el ancho disponible */
   margin: 0 auto;
-  padding: 60px 20px; /* Espacio superior para bajarlo */
-  min-height: 100vh; /* Ocupa todo el alto de la pantalla */
+  padding: 20px 0; /* Padding vertical */
 }
 
-/* Cuadro de bienvenida al lado derecho */
+/* Cuadro de bienvenida */
 .welcome-box {
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
-  padding: 30px;
+  padding: 25px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  max-width: 400px;
-  width: 100%;
+  max-width: 450px; /* Límite de ancho */
+  width: 100%; /* Ocupar el ancho disponible en móviles */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  align-self: center; /* Se asegura que se centre verticalmente */
+  text-align: center; /* Texto centrado en móviles */
+  order: 1; /* Por defecto, el welcome-box puede ir primero en el flujo DOM si así se desea para móviles */
 }
 
-/* Título dentro del cuadro */
 .welcome-box h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem; /* Tamaño ajustado para móviles */
   font-weight: 700;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   color: #333;
 }
 
-/* Texto dentro del cuadro */
 .welcome-box p {
-  font-size: 1rem;
+  font-size: 0.95rem; /* Tamaño ajustado para móviles */
   color: #555;
   line-height: 1.6;
 }
 
-/* Efecto al pasar el cursor */
 .welcome-box:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
 }
 
-
 /* Estilo del formulario de login */
 .login-box {
-  background-color: rgba(255, 255, 255, 0.85);
-  padding: 40px;
+  background-color: rgba(255, 255, 255, 0.85); /* Este podría ser el fondo si no usas el gradiente de Tailwind en el JSX */
+  padding: 30px;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 100%;
+  max-width: 400px; /* Límite de ancho */
+  width: 100%; /* Ocupar el ancho disponible en móviles */
   text-align: center;
   backdrop-filter: blur(10px);
-  animation: fadeIn 1.5s ease-out;
+  animation: fadeIn 1s ease-out; /* Duración de animación ajustada */
+  order: 2; /* Por defecto, el login-box puede ir segundo en el flujo DOM para móviles */
 }
 
-/* Estilo del texto vertical */
+/* Texto vertical (opcional para móviles) */
 .text-vertical {
+  display: none; /* Oculto en móviles por defecto */
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #fff;
   opacity: 0.8;
-  margin-left: 30px;
-  line-height: 1.8;
+  margin-left: 20px; /* Ajustar según diseño */
+  line-height: 1.7;
   font-weight: 300;
 }
 
-/* Animación de entrada */
 @keyframes fadeIn {
   0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   100% {
     opacity: 1;
@@ -110,35 +111,31 @@ body {
   }
 }
 
-/* Título */
 .titulo {
-  color: #333;
-  font-size: 2.5rem;
+  color: #333; /* Si no usas text-white de Tailwind */
+  font-size: 2rem; /* Ajustado para móviles */
   font-weight: 700;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
-/* Subtítulo */
 .subtitulo {
-  color: #777;
-  font-size: 1.1rem;
-  margin-top: 10px;
+  color: #777; /* Si no usas text-white de Tailwind */
+  font-size: 1rem; /* Ajustado para móviles */
+  margin-top: 8px;
 }
 
-/* Logo */
 .logo {
-  width: 80px; /* Establecer un tamaño fijo adecuado */
+  width: 70px; /* Tamaño ajustado para móviles */
   height: auto;
-  margin-top: 20px;
-  object-fit: contain; /* Para asegurarse de que el logo no se distorsione */
+  margin-top: 15px;
+  object-fit: contain;
   transition: transform 0.3s ease;
 }
 
 .logo:hover {
-  transform: scale(1.1); /* Efecto de zoom al pasar el cursor */
+  transform: scale(1.1);
 }
 
-/* Estilos para los formularios */
 input[type="text"],
 input[type="password"] {
   box-sizing: border-box;
@@ -147,7 +144,7 @@ input[type="password"] {
   margin: 10px 0;
   border: 2px solid #ddd;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem; /* Tamaño base para móviles */
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   background-color: #f9f9f9;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -160,57 +157,148 @@ input[type="password"]:focus {
   box-shadow: 0 0 8px rgba(91, 110, 252, 0.5);
 }
 
-/* Agregar iconos dentro de los campos */
 input[type="text"]::placeholder,
 input[type="password"]::placeholder {
   color: #999;
 }
 
 /* Botón de login */
-button {
+/* Aplicar a 'button' dentro de .login-box o a una clase específica si el botón la tiene */
+.login-box button {
   background-color: #5B6EFC;
   color: white;
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
-  font-size: 1.2rem;
+  font-size: 1.1rem; /* Tamaño base para móviles */
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 20px;
+  width: 100%; /* Botón ocupa todo el ancho en móviles */
 }
 
-button:hover {
+.login-box button:hover {
   background-color: #4a5ef7;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Animación de los elementos */
+/* Clases de animación (si las usas directamente en el HTML sin una librería JS) */
 .animate__animated {
   animation-duration: 1s;
   animation-fill-mode: both;
 }
+.animate__fadeIn { animation-name: fadeIn; }
+.animate__zoomIn { animation-name: zoomIn; /* Necesitarías definir @keyframes zoomIn si no usas animate.css */ }
+.animate__fadeInRight { animation-name: fadeInRight; /* Necesitarías definir @keyframes fadeInRight */ }
+.animate__delay-1s { animation-delay: 1s; }
+.animate__delay-2s { animation-delay: 2s; }
 
-.animate__fadeIn {
-  animation-name: fadeIn;
+/* Keyframes para animaciones adicionales si no usas la librería animate.css completa */
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
-.animate__zoomIn {
-  animation-name: zoomIn;
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-.animate__delay-1s {
-  animation-delay: 1s;
-}
 
-.animate__delay-2s {
-  animation-delay: 2s;
-}
-
-/* Copyright */
 .copy {
-  font-size: 0.9rem;
-  color: #000000;
+  font-size: 0.85rem;
+  color: #000000; /* Si no usas text-gray-100 de Tailwind */
   opacity: 0.7;
-  margin-top: 32px;
+  margin-top: 25px;
   font-weight: 300;
+}
+
+/* ------------------------- */
+/* Media Queries para Responsividad */
+/* ------------------------- */
+
+/* Tablets y escritorios pequeños (a partir de 768px) */
+@media (min-width: 768px) {
+  .login-container {
+    flex-direction: row; /* Elementos lado a lado */
+    justify-content: center; /* Centrar horizontalmente el grupo */
+    align-items: center; /* Alinear verticalmente los items al centro */
+    gap: 40px; /* Espacio original entre elementos */
+    padding: 60px 20px; /* Padding original */
+  }
+
+  .login-box {
+    order: 1; /* login-box a la izquierda */
+    width: auto; /* Permitir que el contenido defina el ancho hasta max-width */
+    min-width: 380px; /* Ancho mínimo para el formulario */
+    margin-top: 0; /* Resetear cualquier margen superior de móvil */
+  }
+
+  .welcome-box {
+    order: 2; /* welcome-box a la derecha */
+    text-align: left; /* Alinear texto a la izquierda */
+    align-self: center; /* Asegurar centrado vertical si las alturas difieren */
+    min-width: 380px; /* Ancho mínimo para el mensaje de bienvenida */
+    margin-top: 0;
+  }
+
+  .text-vertical {
+    display: block; /* Mostrar texto vertical */
+    order: 3; /* Opcional: posicionar el texto vertical */
+  }
+
+  .titulo {
+    font-size: 2.5rem; /* Restaurar tamaño original */
+  }
+
+  .subtitulo {
+    font-size: 1.1rem; /* Restaurar tamaño original */
+  }
+
+  .logo {
+    width: 80px; /* Restaurar tamaño original */
+  }
+
+  .login-box button {
+    width: auto; /* Botón no ocupa todo el ancho */
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas si es necesario (ej. menos de 400px) */
+@media (max-width: 400px) {
+  .login-box {
+    padding: 20px; /* Menos padding */
+  }
+  .welcome-box {
+    padding: 20px; /* Menos padding */
+  }
+  .titulo {
+    font-size: 1.8rem;
+  }
+  .subtitulo {
+    font-size: 0.9rem;
+  }
+  input[type="text"],
+  input[type="password"] {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
+  .login-box button {
+    font-size: 1rem;
+    padding: 10px 15px;
+  }
+  .copy {
+    font-size: 0.8rem;
+  }
 }

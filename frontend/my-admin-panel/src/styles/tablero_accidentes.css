@@ -1,119 +1,200 @@
 /* src/styles/tablero_accidentes.css */
 
 /* Asegurarse de que las variables de inicio.css estén disponibles si no se importan globalmente */
-/* :root { ... (copiar variables de inicio.css si es necesario) ... } */
+/* :root {
+  --primary-color-dark: #0056b3;
+  --text-color-muted: #6c757d;
+  --card-border-radius: 0.5rem;
+  --border-color: #dee2e6;
+  --light-gray-bg: #f8f9fa;
+} */
 
 .tablero-pbi-page .main-content {
   display: flex;
   flex-direction: column;
   align-items: center; /* Centrar el contenido del tablero */
-  padding-top: 2rem; /* Más espacio arriba para el título */
-  padding-bottom: 2rem;
+  padding: 1rem; /* Padding general para móviles */
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .tablero-header {
   display: flex;
+  flex-direction: column; /* Apilado en móviles */
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem; /* Menos espacio debajo del título principal */
-  color: var(--primary-color-dark, #0056b3); /* Usar variable de inicio.css */
+  gap: 0.5rem; /* Espacio reducido en móviles */
+  margin-bottom: 1rem; /* Espacio ajustado */
+  color: var(--primary-color-dark, #0056b3);
+  text-align: center;
 }
 
 .tablero-header .header-icon {
   stroke-width: 2;
+  width: 36px; /* Tamaño del icono ajustado */
+  height: 36px;
 }
 
 .tablero-title {
-  font-size: 2rem; /* Tamaño del título */
+  font-size: 1.5rem; /* Tamaño del título ajustado para móviles */
   font-weight: 700;
-  text-align: center;
   margin: 0;
 }
 
 .tablero-description {
-  font-size: 1rem;
-  color: var(--text-color-muted, #6c757d); /* Usar variable de inicio.css */
+  font-size: 0.9rem; /* Tamaño de descripción ajustado para móviles */
+  color: var(--text-color-muted, #6c757d);
   text-align: center;
-  max-width: 800px; /* Limitar ancho de la descripción */
-  margin-bottom: 2rem; /* Más espacio antes del iframe */
+  max-width: 90%; /* Usar porcentaje para que se ajuste mejor */
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1.5rem; /* Espacio ajustado */
   line-height: 1.6;
-  margin-top: 3.5rem; /* Espacio superior para la descripción */
+  margin-top: 0.5rem; /* Espacio superior reducido */
 }
 
 .iframe-container {
-  width: 100%;
-  min-width: 900px;
+  width: 100%; /* Ocupar todo el ancho disponible */
+  /* min-width: 900px; Eliminado para permitir que sea más pequeño en móviles */
   max-width: 1200px; /* Ancho máximo para el contenedor del iframe */
-  height: 75vh; /* Altura relativa a la ventana gráfica */
-  min-height: 450px; /* Altura mínima considerable */
-  background-color: #e9ecef; /* Un fondo sutil mientras carga el iframe */
-  border-radius: var(--card-border-radius, 0.5rem); /* Usar variable de inicio.css */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
-  display: flex; /* Para centrar el iframe si es más pequeño */
+  height: 60vh; /* Altura relativa a la ventana gráfica, ajustada para móviles */
+  min-height: 400px; /* Altura mínima considerable, ajustada */
+  background-color: #e9ecef;
+  border-radius: var(--card-border-radius, 0.5rem);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px; /* Un pequeño padding interno */
-  overflow: hidden; /* Para asegurar que el iframe no se desborde con sus propios bordes/sombras */
+  padding: 5px; /* Padding reducido para móviles */
+  overflow: hidden;
   border: 1px solid var(--border-color, #dee2e6);
+  box-sizing: border-box; /* Asegurar que el padding no aumente el tamaño total */
 }
 
 .powerbi-iframe {
   width: 100%;
   height: 100%;
-  border: none; /* Quitar borde del iframe en sí */
-  border-radius: calc(var(--card-border-radius, 0.5rem) - 5px); /* Radio interno ligeramente menor que el contenedor */
+  border: none;
+  border-radius: calc(var(--card-border-radius, 0.5rem) - 3px); /* Radio interno ajustado */
 }
 
 .iframe-notes {
-  margin-top: 1.5rem;
-  font-size: 0.85rem;
+  margin-top: 1rem; /* Espacio ajustado */
+  font-size: 0.8rem; /* Tamaño de notas ajustado para móviles */
   color: var(--text-color-muted, #6c757d);
   text-align: center;
-  max-width: 700px;
+  max-width: 90%; /* Usar porcentaje */
+  margin-left: auto;
+  margin-right: auto;
   display: flex;
+  flex-direction: column; /* Apilar icono y texto en móviles */
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: 0.3rem; /* Espacio reducido */
+  padding: 0.5rem; /* Padding reducido */
   background-color: var(--light-gray-bg, #f8f9fa);
   border-radius: var(--card-border-radius, 0.5rem);
   border: 1px dashed var(--border-color, #dee2e6);
+}
+
+.iframe-notes .info-icon { /* Asumiendo que tienes un icono con esta clase */
+  width: 18px;
+  height: 18px;
 }
 
 .iframe-notes span {
   line-height: 1.5;
 }
 
-/* Media query para ajustar en pantallas más pequeñas */
-@media (max-width: 768px) {
-  .tablero-title {
-    font-size: 1.6rem;
+/* ------------------------- */
+/* Media Queries para Responsividad */
+/* ------------------------- */
+
+/* Tablets (a partir de 577px) */
+@media (min-width: 577px) {
+  .tablero-pbi-page .main-content {
+    padding: 1.5rem; /* Un poco más de padding */
   }
-  .tablero-description {
-    font-size: 0.9rem;
+
+  .tablero-header {
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
   }
+
+  .tablero-header .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tablero-title {
+    font-size: 1.8rem;
+  }
+
+  .tablero-description {
+    font-size: 1rem;
+    max-width: 85%;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+  }
+
   .iframe-container {
     height: 65vh;
-    min-height: 500px;
-    padding: 5px;
+    min-height: 450px;
+    padding: 8px;
   }
+
   .iframe-notes {
-    font-size: 0.8rem;
+    flex-direction: row; /* Icono y texto en línea */
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    gap: 0.5rem;
   }
 }
 
-@media (max-width: 576px) {
-    .tablero-header {
-        flex-direction: column;
-        gap: 0.25rem;
-        margin-bottom: 0.75rem;
-    }
-    .tablero-title {
-        font-size: 1.4rem;
-    }
-     .iframe-container {
-        height: 60vh;
-        min-height: 450px;
+/* Escritorios pequeños y tablets grandes (a partir de 769px) */
+@media (min-width: 769px) {
+  .tablero-pbi-page .main-content {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .tablero-header {
+    flex-direction: row; /* Icono y título en línea */
+    margin-bottom: 0.5rem; /* Restaurar espacio original */
+  }
+  
+  .tablero-header .header-icon {
+    width: auto; /* Dejar que el SVG defina su tamaño o un tamaño fijo si es necesario */
+    height: auto;
+  }
+
+  .tablero-title {
+    font-size: 2rem; /* Restaurar tamaño original */
+  }
+
+  .tablero-description {
+    max-width: 800px; /* Restaurar max-width original */
+    margin-top: 0.5rem; /* Ajuste fino si es necesario, antes era 3.5rem, evaluar */
+  }
+
+  .iframe-container {
+    height: 70vh; /* Altura original o ajustada para escritorio */
+    min-height: 500px; /* Altura mínima original o ajustada */
+    /* min-width: 900px; /* Opcional: restaurar si es estrictamente necesario en escritorio */
+    padding: 10px; /* Restaurar padding original */
+  }
+
+  .iframe-notes {
+    margin-top: 1.5rem; /* Restaurar margen original */
+    max-width: 700px; /* Restaurar max-width original */
+  }
+}
+
+/* Escritorios más grandes (a partir de 992px) */
+@media (min-width: 992px) {
+    .iframe-container {
+        height: 75vh; /* Puede ser un poco más alto en pantallas grandes */
+        min-height: 600px;
     }
 }

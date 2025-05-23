@@ -1,22 +1,22 @@
 /* src/styles/inicio.css */
 :root {
-  --primary-color: #007bff; 
+  --primary-color: #007bff;
   --primary-color-dark: #0056b3;
-  --primary-color-light: #4da3ff; 
-  --secondary-color: #6c757d; 
+  --primary-color-light: #4da3ff;
+  --secondary-color: #6c757d;
   --danger-color: #dc3545;
   --danger-color-dark: #c82333;
   --warning-color: #ffc107;
-  --light-gray-bg: #f8f9fa; 
-  --text-color-dark: #121416; 
+  --light-gray-bg: #f8f9fa;
+  --text-color-dark: #121416;
   --text-color-light: #ffffff;
-  --text-color-muted: #6c757d; 
+  --text-color-muted: #6c757d;
   --border-color: #dee2e6;
   --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
-  --card-border-radius: 0.5rem; 
+  --card-border-radius: 0.5rem;
   --font-family-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --navbar-height: 3.5rem; 
-  --topbar-height: 4rem; 
+  --navbar-height: 3.5rem; /* Altura base para la barra secundaria */
+  --topbar-height: 4rem; /* Altura base para la barra principal */
   --filter-section-padding: 1.5rem;
   --filter-gap: 1rem;
 }
@@ -27,12 +27,13 @@ body {
   background-color: var(--light-gray-bg);
   color: var(--text-color-dark);
   line-height: 1.6;
+  padding-top: calc(var(--topbar-height) + var(--navbar-height)); /* Espacio para las navbars fijas */
 }
 
 .inicio-page-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh - (var(--topbar-height) + var(--navbar-height))); /* Ajustar min-height considerando las navbars */
 }
 
 .container {
@@ -42,6 +43,7 @@ body {
   margin-right: auto;
   padding-left: 1rem;
   padding-right: 1rem;
+  box-sizing: border-box;
 }
 
 /* --- Barras de Navegación --- */
@@ -50,13 +52,15 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1030; 
+  z-index: 1030;
   background-image: linear-gradient(to right, #0052D4, #2e67f8, #5481fb);
   color: var(--text-color-light);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
   height: var(--topbar-height);
   display: flex;
   align-items: center;
+  padding: 0 1rem; /* Padding base para la barra superior */
+  box-sizing: border-box;
 }
 
 .main-top-bar-content {
@@ -67,27 +71,31 @@ body {
 }
 
 .app-title {
-  font-size: 1.3rem; 
+  font-size: 1.1rem; /* Tamaño base para móviles */
   font-weight: 600;
+  white-space: nowrap; /* Evitar que el título se rompa en varias líneas fácilmente */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Añadir puntos suspensivos si el título es muy largo */
+  margin-right: 1rem; /* Espacio entre título y botón de logout */
 }
 
 .btn-logout {
-  margin-top: 0;
   background-color: var(--danger-color);
   border-color: var(--danger-color);
   color: var(--text-color-light);
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem; /* Padding ajustado para móviles */
+  font-size: 0.8rem; /* Tamaño de fuente ajustado para móviles */
   font-weight: 500;
   border-radius: 0.25rem;
   cursor: pointer;
   transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-  /* Asegurar que sea un botón y no un enlace con estilo de botón si se usa <a> */
-  text-decoration: none; 
+  text-decoration: none;
   display: inline-block;
   line-height: normal;
   border-style: solid;
   border-width: 1px;
+  white-space: nowrap; /* Evitar que el texto del botón se rompa */
+  flex-shrink: 0; /* Evitar que el botón se encoja */
 }
 
 .btn-logout:hover {
@@ -97,73 +105,84 @@ body {
 
 .secondary-nav-bar {
   position: fixed;
-  top: var(--topbar-height); 
+  top: var(--topbar-height);
   left: 0;
   right: 0;
   z-index: 1020;
   background-color: var(--primary-color);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: var(--navbar-height);
+  height: auto; /* Altura automática para permitir wrapping en móviles */
+  min-height: var(--navbar-height); /* Altura mínima */
   display: flex;
   align-items: center;
+  padding: 0.5rem 0; /* Padding vertical para la barra secundaria */
+  box-sizing: border-box;
 }
 
 .secondary-nav-bar .container {
   display: flex;
-  justify-content: center;
+  justify-content: center; /* Centrar los links si hay espacio */
+  width: 100%;
 }
 
 .nav-links-container {
   display: flex;
-  gap: 1.25rem; 
+  gap: 0.5rem; /* Espacio reducido entre links para móviles */
+  flex-wrap: wrap; /* Permitir que los links se envuelvan a la siguiente línea */
+  justify-content: center; /* Centrar los links envueltos */
+  width: 100%;
 }
 
 .nav-link {
   color: var(--text-color-light);
   text-decoration: none;
-  padding: 0.6rem 1rem; 
-  border-radius: 0.25rem; 
-  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem; /* Padding ajustado para móviles */
+  border-radius: 0.25rem;
+  font-size: 0.85rem; /* Tamaño de fuente ajustado para móviles */
   font-weight: 500;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-bottom-color 0.2s ease-in-out;
   letter-spacing: 0.5px;
-  border-bottom: 3px solid transparent; /* Borde inferior más grueso */
+  border-bottom: 3px solid transparent;
+  text-align: center; /* Centrar texto si el link se vuelve muy estrecho */
+  flex-grow: 1; /* Permitir que los links crezcan para llenar el espacio */
+  flex-basis: auto; /* Base automática para el crecimiento */
 }
 
 .nav-link:hover {
   background-color: var(--primary-color-dark);
-  color: #e0e0e0; 
-  border-bottom-color: var(--primary-color-light); 
+  color: #e0e0e0;
+  border-bottom-color: var(--primary-color-light);
 }
 
 .nav-link.active {
-  background-color: var(--primary-color-dark); 
-  color: var(--text-color-light); 
-  font-weight: 700; 
-  border-bottom: 3px solid var(--primary-color-light); 
-  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1); 
+  background-color: var(--primary-color-dark);
+  color: var(--text-color-light);
+  font-weight: 700;
+  border-bottom: 3px solid var(--primary-color-light);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);
 }
 
 /* --- Contenido Principal y Filtros --- */
 .main-content {
-  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); 
+  /* padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); Eliminado, el padding-top ahora está en el body */
   flex-grow: 1;
+  padding-top: 1.5rem; /* Espacio después de las navbars */
   padding-bottom: 2rem;
 }
 
 .filter-section-container {
   margin-bottom: 2rem;
-  padding: var(--filter-section-padding);
+  padding: 1rem; /* Padding reducido para móviles */
   background-color: #ffffff;
   box-shadow: var(--card-shadow);
   border-radius: var(--card-border-radius);
 }
 
 .filter-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem; /* Tamaño ajustado para móviles */
   font-weight: 600;
   color: var(--primary-color);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem; /* Margen ajustado */
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-color);
   text-align: center;
@@ -171,8 +190,8 @@ body {
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Ajustado minmax */
-  gap: var(--filter-gap) 1.5rem; /* Más gap horizontal */
+  grid-template-columns: 1fr; /* Una columna por defecto para móviles */
+  gap: var(--filter-gap); /* Usar solo el gap vertical en una columna */
 }
 
 .filter-group {
@@ -181,18 +200,18 @@ body {
 }
 
 .filter-label {
-  font-size: 0.875rem; 
+  font-size: 0.85rem; /* Tamaño ajustado */
   font-weight: 500;
   color: var(--text-color-dark);
-  margin-bottom: 0.375rem; 
+  margin-bottom: 0.3rem;
 }
 
 .filter-select,
-.filter-input.date-input { 
+.filter-input.date-input {
   display: block;
   width: 100%;
-  padding: 0.6rem 0.75rem; /* Padding ligeramente aumentado */
-  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem; /* Padding ajustado */
+  font-size: 0.85rem; /* Tamaño de fuente ajustado */
   font-family: inherit;
   color: var(--text-color-dark);
   background-color: #fff;
@@ -208,7 +227,7 @@ body {
   background-position: right 0.75rem center;
   background-repeat: no-repeat;
   background-size: 1.25em 1.25em;
-  padding-right: 2.5rem; 
+  padding-right: 2.5rem;
 }
 
 .filter-select:focus,
@@ -226,7 +245,7 @@ body {
 }
 
 /* --- Mensajes de Carga y "No Hay Datos" --- */
-.loading-message { /* Usado por Spinner si showText es true */
+.loading-message {
   text-align: center;
   padding: 1rem;
   color: var(--text-color-muted);
@@ -243,65 +262,60 @@ body {
   color: var(--text-color-muted);
   border: 2px dashed var(--border-color);
   border-radius: var(--card-border-radius);
-  min-height: 200px; /* Aumentado para más presencia */
-  background-color: #fdfdfd; 
+  min-height: 150px; /* Altura reducida para móviles */
+  background-color: #fdfdfd;
 }
 
 .no-reports-icon {
-  font-size: 3rem; /* Ícono más grande */
-  margin-bottom: 1rem;
-  color: var(--warning-color); 
+  font-size: 2.5rem; /* Icono ajustado */
+  margin-bottom: 0.75rem; /* Margen ajustado */
+  color: var(--warning-color);
 }
 
 .no-reports-message p {
   margin: 0.3rem 0;
-  font-size: 1rem;
+  font-size: 0.9rem; /* Tamaño ajustado */
 }
 
 .no-reports-message p:last-child {
-  font-size: 0.9rem;
-  margin-top: 0.75rem;
+  font-size: 0.85rem; /* Tamaño ajustado */
+  margin-top: 0.5rem; /* Margen ajustado */
 }
 
 /* --- Grid de Contenido y Tarjetas --- */
 .content-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem; 
-}
-
-@media (min-width: 992px) { 
-  .content-grid {
-    grid-template-columns: 2fr 1fr; 
-  }
+  grid-template-columns: 1fr; /* Una columna por defecto */
+  gap: 1.5rem; /* Espacio ajustado */
 }
 
 .map-card, .reports-card {
   background-color: #ffffff;
   box-shadow: var(--card-shadow);
   border-radius: var(--card-border-radius);
-  padding: 1.5rem; 
+  padding: 1rem; /* Padding reducido */
   display: flex;
   flex-direction: column;
 }
 
 .card-title {
-  font-size: 1.35rem;
+  font-size: 1.2rem; /* Tamaño ajustado */
   font-weight: 600;
-  margin-top: 0; /* Quitar margen superior si está dentro de la tarjeta */
-  margin-bottom: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 1rem; /* Margen ajustado */
   text-align: center;
-  color: var(--primary-color); 
+  color: var(--primary-color);
 }
 
-.card-title .icon { 
+.card-title .icon {
   margin-right: 0.5rem;
 }
 
 .leaflet-container {
-  border-radius: 0.375rem; 
+  border-radius: 0.375rem;
   border: 1px solid var(--border-color);
-  flex-grow: 1; 
+  flex-grow: 1;
+  min-height: 300px; /* Altura mínima para el mapa en móviles */
 }
 
 /* --- Lista de Reportes --- */
@@ -309,50 +323,50 @@ body {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 450px; 
+  max-height: 350px; /* Altura máxima ajustada */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem; /* Espacio reducido */
 }
 
-.reports-list::-webkit-scrollbar { width: 8px; }
+.reports-list::-webkit-scrollbar { width: 6px; } /* Scrollbar más delgada */
 .reports-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
 .reports-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 .reports-list::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
 .report-item {
-  padding: 0.8rem 1rem;
+  padding: 0.7rem 0.9rem; /* Padding ajustado */
   background-color: var(--light-gray-bg);
   border-radius: 0.375rem;
-  border-left: 4px solid var(--primary-color); 
+  border-left: 4px solid var(--primary-color);
   transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  cursor: pointer; /* Hacer todo el ítem clickeable */
+  cursor: pointer;
 }
 
 .report-item:hover {
   background-color: #e9ecef;
-  transform: translateY(-2px); 
+  transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.05);
 }
 
 .report-item p {
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Tamaño ajustado */
   color: var(--text-color-dark);
   margin: 0;
-  margin-bottom: 0.25rem; 
+  margin-bottom: 0.25rem;
 }
 
 /* --- Enlaces de Detalles --- */
 .popup-link {
-  display: block; 
-  margin-top: 8px; 
-  padding: 6px 10px; /* Ligeramente más grande */
+  display: block;
+  margin-top: 6px; /* Margen ajustado */
+  padding: 5px 8px; /* Padding ajustado */
   background-color: var(--primary-color);
-  color: var(--text-color-dark) !important;
+  color: var(--text-color-light) !important; /* Corregido color de texto */
   text-decoration: none;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.8rem; /* Tamaño ajustado */
   text-align: center;
   transition: background-color 0.2s ease;
 }
@@ -362,139 +376,208 @@ body {
 }
 
 .report-item-link {
-  display: block; 
+  display: block;
   text-decoration: none;
-  color: inherit; 
-  position: relative; 
+  color: inherit;
+  position: relative;
 }
 
 .view-details-prompt {
-  display: block; 
-  font-size: 0.8rem;
+  display: block;
+  font-size: 0.75rem; /* Tamaño ajustado */
   color: var(--primary-color);
   font-weight: 500;
   margin-top: 4px;
-  text-align: right; 
-  opacity: 0; 
+  text-align: right;
+  opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }
 
 .report-item:hover .view-details-prompt {
-  opacity: 1; 
+  opacity: 1;
 }
 
 /* --- Mensaje de Error de API --- */
 .api-error-message {
-  margin-bottom: 1.5rem;
-  padding: 1rem 1.25rem;
-  background-color: #f8d7da; 
-  color: #721c24; 
+  margin-bottom: 1rem; /* Margen ajustado */
+  padding: 0.8rem 1rem; /* Padding ajustado */
+  background-color: #f8d7da;
+  color: #721c24;
   border: 1px solid #f5c6cb;
   border-radius: var(--card-border-radius);
   text-align: center;
   font-weight: 500;
+  font-size: 0.9rem; /* Tamaño ajustado */
 }
 
 /* --- Pie de Página --- */
 .main-footer {
-  background-color: #343a40; 
+  background-color: #343a40;
   color: var(--text-color-light);
   text-align: center;
-  padding: 1.5rem 1rem;
+  padding: 1rem; /* Padding ajustado */
   margin-top: auto;
-  font-size: 0.875rem;
+  font-size: 0.8rem; /* Tamaño ajustado */
 }
-
-/* --- Media Queries para Responsividad --- */
-@media (max-width: 768px) {
-  .main-top-bar .container, /* Aplicar a ambos contenedores de barra */
-  .main-top-bar-content { 
-    font-size: 1.1rem;
-    /* justify-content: center; */ /* Quitado para permitir que el botón de logout flote */
-  }
-  .main-top-bar-content .app-title {
-    flex-grow: 1; 
-    text-align: left; /* Alinear título a la izquierda */
-  }
-  .main-top-bar-content .btn-logout {
-    margin-left: 1rem; 
-    flex-shrink: 0; /* Evitar que el botón se encoja demasiado */
-  }
-  .nav-links-container {
-    gap: 0.5rem; 
-    flex-wrap: wrap; 
-    justify-content: center;
-  }
-  .nav-link {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-  }
-  .filter-title { font-size: 1.1rem; }
-  .filters-grid { grid-template-columns: 1fr; }
-  .filter-group { margin-bottom: var(--filter-gap); }
-  .filters-grid > .filter-group:last-child { margin-bottom: 0; }
-  .main-content { padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1rem); }
-}
-
-@media (max-width: 576px) {
-  .app-title {
-    font-size: 1rem; /* Reducir un poco más el título */
-  }
-  .main-top-bar-content { 
-    /* Considerar apilar si el espacio es muy reducido */
-    /* flex-direction: column; 
-    gap: 0.5rem; 
-    height: auto; 
-    padding-bottom: 0.5rem; */
-  }
-  /* .btn-logout { width: 100%; max-width: 200px; margin-top: 0.5rem; } */ /* Si se apilan */
-  .card-title { font-size: 1.2rem; }
-  .main-footer { padding: 1rem; font-size: 0.8rem; }
-  .filter-section-container { padding: 1rem; }
-}
-
-
-
-
 
 /* --- Burbuja de Chatbot de Telegram (FAB - Floating Action Button) --- */
 .telegram-fab {
-  position: fixed; /* Posición fija en la pantalla */
-  bottom: 25px; /* Distancia desde abajo */
-  right: 25px; /* Distancia desde la derecha */
-  background-color: #0088cc; /* Color azul de Telegram */
-  color: white; /* Color del icono */
-  width: 56px; /* Ancho */
-  height: 56px; /* Alto */
-  border-radius: 50%; /* Para hacerlo circular */
-  display: flex; /* Para centrar el icono */
-  align-items: center; /* Centrar verticalmente */
-  justify-content: center; /* Centrar horizontalmente */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad */
-  z-index: 1050; /* Asegura que esté por encima de la mayoría del contenido */
-  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Transiciones suaves */
-  text-decoration: none; /* Quitar subrayado del enlace */
+  position: fixed;
+  bottom: 20px; /* Ajustado para móviles */
+  right: 20px; /* Ajustado para móviles */
+  background-color: #0088cc;
+  color: white;
+  width: 50px; /* Tamaño ajustado para móviles */
+  height: 50px; /* Tamaño ajustado para móviles */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1050;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  text-decoration: none;
 }
 
 .telegram-fab:hover {
-  background-color: #0077b3; /* Azul de Telegram un poco más oscuro al pasar el cursor */
-  transform: scale(1.1); /* Agrandar ligeramente al pasar el cursor */
+  background-color: #0077b3;
+  transform: scale(1.1);
 }
 
 .telegram-fab svg {
-  fill: white; /* Si usas un icono SVG que necesite relleno */
+  fill: white;
+  width: 22px; /* Tamaño de icono ajustado */
+  height: 22px; /* Tamaño de icono ajustado */
 }
 
-/* Ajustes responsivos para la burbuja */
-@media (max-width: 768px) {
+
+/* ------------------------- */
+/* Media Queries Adicionales */
+/* ------------------------- */
+
+/* Tablets (a partir de 769px) - Se solapa con la media query existente, unificando y ajustando */
+@media (min-width: 769px) {
+  body {
+    /* No es necesario re-declarar el padding-top aquí si ya está en la regla base */
+  }
+
+  .main-top-bar {
+    padding: 0; /* Resetear padding si el .container interno lo maneja */
+    height: var(--topbar-height); /* Asegurar altura original */
+  }
+  .main-top-bar-content {
+    /* Ya es flex y space-between, no necesita cambios aquí a menos que se quiera revertir algo de móvil */
+  }
+  .app-title {
+    font-size: 1.3rem; /* Restaurar tamaño original */
+    margin-right: 0; /* Resetear si el container lo maneja */
+  }
+  .btn-logout {
+    padding: 0.4rem 0.8rem; /* Restaurar padding */
+    font-size: 0.85rem; /* Restaurar tamaño */
+  }
+
+  .secondary-nav-bar {
+    height: var(--navbar-height); /* Restaurar altura fija */
+    padding: 0; /* Resetear padding si el .container interno lo maneja */
+  }
+  .nav-links-container {
+    gap: 1.25rem; /* Restaurar gap original */
+    flex-wrap: nowrap; /* Evitar que los links se envuelvan */
+    justify-content: center; /* Centrar los links */
+    width: auto; /* Ancho automático para el contenedor de links */
+  }
+  .nav-link {
+    padding: 0.6rem 1rem; /* Restaurar padding original */
+    font-size: 0.9rem; /* Restaurar tamaño original */
+    flex-grow: 0; /* Links no necesitan crecer tanto */
+  }
+
+  .filter-section-container {
+    padding: var(--filter-section-padding); /* Restaurar padding */
+  }
+  .filter-title {
+    font-size: 1.25rem; /* Restaurar tamaño */
+  }
+  .filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Grid adaptable */
+    gap: var(--filter-gap) 1.5rem; /* Restaurar gap original */
+  }
+  .filter-label {
+    font-size: 0.875rem; /* Restaurar */
+  }
+  .filter-select,
+  .filter-input.date-input {
+    padding: 0.6rem 0.75rem; /* Restaurar */
+    font-size: 0.9rem; /* Restaurar */
+  }
+
+  .content-grid {
+    gap: 2rem; /* Restaurar gap */
+  }
+  .map-card, .reports-card {
+    padding: 1.5rem; /* Restaurar padding */
+  }
+  .card-title {
+    font-size: 1.35rem; /* Restaurar */
+  }
+  .reports-list {
+    max-height: 450px; /* Restaurar */
+    gap: 0.75rem; /* Restaurar */
+  }
+  .report-item {
+    padding: 0.8rem 1rem; /* Restaurar */
+  }
+  .report-item p {
+    font-size: 0.9rem; /* Restaurar */
+  }
+  .popup-link {
+    padding: 6px 10px; /* Restaurar */
+    font-size: 0.85rem; /* Restaurar */
+  }
+  .view-details-prompt {
+    font-size: 0.8rem; /* Restaurar */
+  }
+  .api-error-message {
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+  }
+  .main-footer {
+    padding: 1.5rem 1rem; /* Restaurar */
+    font-size: 0.875rem; /* Restaurar */
+  }
   .telegram-fab {
-    width: 50px;
-    height: 50px;
-    bottom: 20px;
-    right: 20px;
+    width: 56px; /* Restaurar */
+    height: 56px; /* Restaurar */
+    bottom: 25px; /* Restaurar */
+    right: 25px; /* Restaurar */
   }
   .telegram-fab svg {
-    width: 22px; /* Ajustar tamaño del icono si es necesario */
-    height: 22px;
+      width: auto; /* Dejar que el SVG defina su tamaño o usar un tamaño fijo */
+      height: auto;
   }
+}
+
+/* Media Query específica para el content-grid de dos columnas */
+@media (min-width: 992px) {
+  .content-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* Media Query para cuando la barra de navegación secundaria ya no necesita envolver los links
+   Esto puede solaparse con 769px, pero es para asegurar que los links no se envuelvan si hay espacio.
+   Ajusta el valor (ej. 600px, 700px) según el número de links y sus anchos.
+*/
+@media (min-width: 700px) { /* Ejemplo de breakpoint para el nav-links-container */
+    .secondary-nav-bar .container {
+        justify-content: center; /* Asegurar centrado */
+    }
+    .nav-links-container {
+        flex-wrap: nowrap;
+        width: auto; /* No necesita ocupar todo el ancho si los links caben */
+    }
+    .nav-link {
+        flex-grow: 0; /* No necesitan crecer tanto si caben */
+    }
 }

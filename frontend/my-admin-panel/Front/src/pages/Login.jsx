@@ -10,7 +10,7 @@ const Login = () => {
         <div className="login-box bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
           <div className="text-center mb-6 animate__animated animate__fadeIn animate__delay-1s">
             <img
-              src="/favicon.png"
+              src="/escudo_quilla.avif"
               alt="Escudo"
               className="logo animate__animated animate__zoomIn"
             />

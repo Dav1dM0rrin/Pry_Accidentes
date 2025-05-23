@@ -9,23 +9,29 @@
   --light-gray-bg: #f8f9fa;
   --text-color-dark: #212529;
   --text-color-light: #ffffff;
+  --text-color-muted: #6c757d;
   --border-color: #dee2e6;
   --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
   --card-border-radius: 0.5rem;
   --font-family-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --navbar-height: 3.5rem; 
-  --topbar-height: 4rem; 
+  /* Ajusta estas alturas si tu layout global es diferente o no las usas */
+  --navbar-height: 3.5rem;
+  --topbar-height: 4rem;
 }
 
 .gestion-page-container {
   font-family: var(--font-family-sans-serif);
   background-color: var(--light-gray-bg);
   min-height: 100vh;
-  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem);
+  /* padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); */ /* Ver nota en ReportarAccidente.css */
+  padding-top: 1.5rem; /* Padding superior base */
   padding-bottom: 2rem;
+  padding-left: 1rem; /* Padding lateral para móviles */
+  padding-right: 1rem; /* Padding lateral para móviles */
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  box-sizing: border-box;
 }
 
 .gestion-container-card {
@@ -33,95 +39,146 @@
   border-radius: var(--card-border-radius);
   box-shadow: var(--card-shadow);
   width: 100%;
-  max-width: 960px; /* Ancho para la tarjeta de gestión */
-  margin: 1rem;
-  padding: 2rem 2.5rem;
+  max-width: 960px;
+  margin: 1rem 0; /* Margen vertical, sin margen lateral */
+  padding: 1rem; /* Padding reducido para móviles */
+  box-sizing: border-box;
 }
 
 .gestion-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem; /* Espacio después de Breadcrumbs y antes del título */
+  flex-direction: column; /* Apilar en móviles */
+  align-items: flex-start; /* Alinear a la izquierda en móviles */
+  gap: 1rem; /* Espacio entre título y botones en móviles */
+  margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
-  flex-wrap: wrap; /* Para que los botones se ajusten en pantallas pequeñas */
-  gap: 1rem; /* Espacio entre título y grupo de botones */
 }
 
 .gestion-title {
-  font-size: 1.8rem;
+  font-size: 1.4rem; /* Tamaño ajustado para móviles */
   font-weight: 600;
   color: var(--primary-color);
   margin: 0;
-  flex-grow: 1; /* Para que el título ocupe espacio */
 }
 
 .gestion-actions {
   display: flex;
-  gap: 0.75rem; /* Espacio entre botones */
-  flex-shrink: 0; /* Para que los botones no se encojan demasiado */
+  flex-direction: column; /* Apilar botones en móviles */
+  gap: 0.75rem;
+  width: 100%; /* Botones ocupan todo el ancho */
+}
+
+.gestion-actions .btn { /* Aplicar a botones dentro de .gestion-actions */
+  width: 100%;
+  text-align: center;
+  font-size: 0.85rem; /* Botones de acción un poco más pequeños en móvil */
+  padding: 0.5rem 0.8rem;
 }
 
 .btn-fixed-width {
-  min-width: 150px; /* Ancho mínimo para los botones de acción principales */
-  text-align: center;
+  min-width: auto;
 }
 
 .table-responsive-container {
   overflow-x: auto; /* Permite scroll horizontal en tablas grandes */
   margin-top: 1.5rem;
+  width: 100%; /* Asegurar que ocupe el ancho del card */
+  border: 1px solid var(--border-color); /* Añadir un borde sutil al contenedor de la tabla */
+  border-radius: var(--card-border-radius); /* Redondear esquinas */
 }
 
 .user-table {
   width: 100%;
+  min-width: 600px; /* Ancho mínimo para la tabla antes de que empiece el scroll. Ajusta según tu contenido. */
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Tamaño de fuente reducido para móviles */
 }
 
 .user-table th,
 .user-table td {
   border: 1px solid var(--border-color);
-  padding: 0.75rem 1rem; /* Buen padding para legibilidad */
+  padding: 0.5rem 0.6rem; /* Padding reducido para celdas en móviles */
   text-align: left;
   vertical-align: middle;
+  white-space: nowrap; /* Evitar que el contenido de las celdas se rompa, forzando el scroll */
 }
 
 .user-table th {
   background-color: var(--primary-color);
   color: var(--text-color-light);
   font-weight: 600;
-  white-space: nowrap; /* Evitar que los encabezados se rompan */
+  position: sticky; /* Para que los encabezados se queden fijos al hacer scroll horizontal */
+  left: 0; /* Asegurar que los encabezados de la primera columna se peguen a la izquierda */
+  z-index: 1; /* Para que estén por encima del contenido de las filas */
 }
+
+/* Para que la primera columna (ej. Nombre) también sea sticky si se desea */
+.user-table th:first-child,
+.user-table td:first-child {
+  position: sticky;
+  left: 0;
+  background-color: var(--light-gray-bg); /* Fondo para la columna fija para diferenciarla */
+  z-index: 2; /* Por encima de los encabezados normales si también son sticky */
+}
+.user-table th:first-child { /* El encabezado de la primera columna fija */
+    background-color: var(--primary-color); /* Mantener el color del encabezado */
+    z-index: 3; /* Encima de las celdas fijas y los encabezados normales */
+}
+
 
 .user-table tbody tr:nth-child(even) {
-  background-color: var(--light-gray-bg); /* Filas alternas con color */
+  background-color: #fdfdfd; /* Un gris aún más claro o blanco para alternar */
 }
+/* Ajustar el fondo de la primera celda fija en filas pares */
+.user-table tbody tr:nth-child(even) td:first-child {
+    background-color: #f0f0f0; /* Un poco más oscuro que el fondo de la fila par */
+}
+.user-table tbody tr:nth-child(odd) td:first-child {
+    background-color: #ffffff; /* O el color de fondo de las filas impares */
+}
+
 
 .user-table tbody tr:hover {
-  background-color: #e9ecef; /* Color al pasar el ratón */
+  background-color: #e9ecef;
+}
+.user-table tbody tr:hover td:first-child { /* Mantener el fondo de la primera celda al hacer hover */
+    background-color: #dde6ef; /* Un color de hover para la celda fija */
 }
 
+
 .actions-cell {
-  text-align: center; /* Centrar botones de acción */
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal; /* Permitir que los botones se envuelvan si es necesario */
+  min-width: 120px; /* Ancho mínimo para la celda de acciones */
+}
+
+.actions-cell .btn-action-group { /* Nuevo contenedor para los botones de acción */
+    display: flex;
+    flex-direction: column; /* Apilar botones en móviles por defecto */
+    align-items: center;
+    gap: 0.3rem;
 }
 
 .btn-action {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.85rem;
-  margin-right: 0.5rem;
-  min-width: 80px;
+  padding: 0.3rem 0.5rem; /* Padding muy reducido para botones de acción */
+  font-size: 0.75rem; /* Fuente muy reducida */
+  /* margin-right: 0; Eliminado, usar gap en el contenedor */
+  min-width: auto; /* Ancho automático */
+  width: 100%; /* Ocupar el ancho del contenedor de grupo */
+  max-width: 100px; /* Evitar que sean demasiado anchos */
+  display: inline-block;
+  /* margin-bottom: 0; Eliminado */
+  box-sizing: border-box;
 }
-.btn-action:last-child {
-  margin-right: 0;
+
+.btn-edit, .btn-delete {
+  color: var(--text-color-dark) !important;
 }
 
 .btn-edit {
-  margin-top: 0.2rem; /* Espacio entre botones de acción */
   background-color: var(--warning-color);
   border-color: var(--warning-color);
-  color: var(--text-color-dark) !important;
 }
 .btn-edit:hover {
   background-color: #e0a800;
@@ -129,10 +186,8 @@
 }
 
 .btn-delete {
-  margin-top: 0.2rem; /* Espacio entre botones de acción */
   background-color: var(--danger-color);
   border-color: var(--danger-color);
-  color: var(--text-color-dark) !important;
 }
 .btn-delete:hover {
   background-color: #c82333;
@@ -146,8 +201,7 @@
   color: var(--text-color-muted);
 }
 
-/* Reutilizar clases de botones si ya están definidas globalmente o en inicio.css */
-/* Si no, definirlas aquí: */
+/* Clases de Botones Genéricas */
 .btn {
   display: inline-block;
   font-weight: 500;
@@ -157,8 +211,8 @@
   user-select: none;
   background-color: transparent;
   border: 1px solid transparent;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -180,11 +234,135 @@
   border-color: var(--secondary-color);
 }
 .btn-secondary:hover {
-  background-color: #545b62; 
+  background-color: #545b62;
   border-color: #545b62;
 }
 
-/* Estilos para el formulario (si se reactiva) */
-/*
-.user-form-popup { ... }
-*/
+/* Columnas opcionales para ocultar en móvil */
+.column-optional-mobile {
+  /* Por defecto visible */
+}
+
+
+/* ------------------------- */
+/* Media Queries */
+/* ------------------------- */
+
+/* Móviles muy pequeños (menos de 480px) */
+@media (max-width: 479px) {
+  .user-table th,
+  .user-table td {
+    padding: 0.4rem 0.5rem; /* Aún más pequeño */
+    font-size: 0.75rem; /* Fuente más pequeña */
+  }
+  /* Ocultar columnas opcionales en pantallas muy pequeñas */
+  .column-optional-mobile {
+    display: none;
+  }
+  .actions-cell {
+    min-width: 100px; /* Reducir ancho mínimo de acciones */
+  }
+  .btn-action {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.4rem;
+  }
+}
+
+
+/* Tablets pequeñas y móviles grandes (a partir de 576px) */
+@media (min-width: 576px) {
+  .gestion-container-card {
+    padding: 1.5rem; /* Un poco más de padding */
+  }
+
+  .gestion-header {
+    flex-direction: row; /* Título y botones en línea */
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .gestion-title {
+    font-size: 1.6rem; /* Un poco más grande */
+  }
+
+  .gestion-actions {
+    flex-direction: row; /* Botones en línea */
+    width: auto;
+  }
+
+  .gestion-actions .btn {
+    width: auto;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .btn-fixed-width {
+     min-width: 130px; /* Ancho fijo para botones principales */
+  }
+
+  .user-table {
+    font-size: 0.85rem; /* Fuente de tabla un poco más grande */
+  }
+
+  .user-table th,
+  .user-table td {
+    padding: 0.6rem 0.8rem; /* Padding de celdas un poco más grande */
+    white-space: normal; /* Permitir que el texto se envuelva un poco más */
+  }
+  .user-table th { /* Encabezados pueden seguir siendo nowrap */
+      white-space: nowrap;
+  }
+
+
+  .actions-cell .btn-action-group {
+    flex-direction: row; /* Botones de acción en línea */
+    justify-content: center;
+  }
+  .btn-action {
+    width: auto; /* Ancho automático para botones de acción */
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+    margin-right: 0.3rem; /* Espacio entre botones de acción en línea */
+  }
+  .btn-action:last-child {
+    margin-right: 0;
+  }
+}
+
+/* Tablets y escritorios pequeños (a partir de 768px) */
+@media (min-width: 768px) {
+    .gestion-container-card {
+        padding: 2rem 2.5rem; /* Restaurar padding original */
+    }
+    .gestion-title {
+        font-size: 1.8rem; /* Restaurar tamaño original */
+    }
+    .btn-fixed-width {
+        min-width: 150px; /* Restaurar ancho fijo original */
+    }
+    .user-table {
+        font-size: 0.9rem; /* Restaurar tamaño de fuente de tabla original */
+        min-width: 750px; /* La tabla puede ser un poco más ancha antes del scroll */
+    }
+    .user-table th,
+    .user-table td {
+        padding: 0.75rem 1rem; /* Restaurar padding de celdas original */
+    }
+    .btn-action {
+        font-size: 0.85rem; /* Restaurar tamaño */
+    }
+    /* Mostrar columnas opcionales de nuevo */
+    .column-optional-mobile {
+        display: table-cell; /* O el display original de la celda */
+    }
+}
+
+/* Escritorios medianos (a partir de 992px) */
+@media (min-width: 992px) {
+  .gestion-container-card {
+    max-width: 1140px; /* Permitir que la tarjeta sea un poco más ancha */
+  }
+  .user-table {
+      min-width: auto; /* En pantallas grandes, la tabla podría no necesitar un min-width forzado si cabe */
+  }
+}

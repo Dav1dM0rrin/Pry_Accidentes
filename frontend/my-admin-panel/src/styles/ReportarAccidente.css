@@ -1,7 +1,5 @@
 /* src/styles/ReportarAccidente.css */
 
-/* Importar variables globales si las tienes en un archivo separado o definirlas aquí */
-/* Para este ejemplo, asumiré que las variables de inicio.css están disponibles o las copiamos */
 :root {
   --primary-color: #007bff;
   --primary-color-dark: #0056b3;
@@ -18,33 +16,48 @@
   --input-padding-y: 0.5rem;
   --input-padding-x: 0.75rem;
   --input-font-size: 0.95rem;
-  --navbar-height: 3.5rem; /* Altura para la barra de navegación secundaria */
-  --topbar-height: 4rem; /* Altura para la barra de navegación principal */
+  /* Ajusta estas alturas si tu layout global es diferente o no las usas */
+  --navbar-height: 3.5rem;
+  --topbar-height: 4rem;
 }
 
 .report-page-container {
-  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); /* Ajustar según las barras de navegación de Inicio */
+  /* El padding-top original podría ser demasiado si las barras no siempre están presentes.
+     Considera un padding más genérico o ajustarlo según el contexto de la página. */
+  padding-top: 1.5rem; /* Padding superior base */
   padding-bottom: 2rem;
+  padding-left: 1rem; /* Padding lateral para móviles */
+  padding-right: 1rem; /* Padding lateral para móviles */
   background-color: var(--light-gray-bg);
   font-family: var(--font-family-sans-serif);
-  min-height: 100vh; /* Asegurar que ocupe toda la altura */
-  display: flex; /* Para centrar el formulario */
+  min-height: 100vh;
+  display: flex;
   justify-content: center;
-  align-items: flex-start; /* Alinear arriba para que el scroll funcione bien */
+  align-items: flex-start;
+  box-sizing: border-box;
 }
+
+/* Si las barras de navegación son parte de un layout que envuelve esta página,
+   el padding superior podría manejarse en ese layout. Si no, puedes reactivar esto: */
+/*
+.report-page-container.with-navbars {
+  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem);
+}
+*/
 
 .report-form-container {
   background-color: #ffffff;
-  padding: 2rem 2.5rem;
+  padding: 1.5rem; /* Padding reducido para móviles */
   border-radius: var(--card-border-radius);
   box-shadow: var(--card-shadow);
   width: 100%;
-  max-width: 700px; /* Ancho máximo del formulario */
-  margin: 1rem; /* Margen por si la pantalla es muy pequeña */
+  max-width: 700px;
+  margin: 1rem 0; /* Margen vertical, sin margen lateral para que ocupe el padding del contenedor padre */
+  box-sizing: border-box;
 }
 
 .report-form-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem; /* Tamaño ajustado para móviles */
   font-weight: 600;
   color: var(--primary-color);
   text-align: center;
@@ -53,11 +66,12 @@
 
 /* --- Mensajes de Formulario --- */
 .form-message {
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1rem; /* Padding ajustado */
   margin-bottom: 1rem;
   border: 1px solid transparent;
   border-radius: 0.25rem;
   font-weight: 500;
+  font-size: 0.9rem; /* Tamaño de fuente ajustado */
   text-align: center;
 }
 
@@ -77,7 +91,7 @@
 .report-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem; /* Espacio entre grupos de formulario */
+  gap: 1rem; /* Espacio ajustado */
 }
 
 .form-group {
@@ -86,10 +100,10 @@
 }
 
 .form-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Tamaño ajustado */
   font-weight: 500;
   color: var(--text-color-dark);
-  margin-bottom: 0.375rem; /* Espacio entre label e input */
+  margin-bottom: 0.3rem;
 }
 
 .form-label .required-asterisk {
@@ -107,8 +121,8 @@
   border: 1px solid var(--border-color);
   border-radius: 0.25rem;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  width: 100%; /* Para que ocupen el ancho del .form-group */
-  box-sizing: border-box; /* Incluir padding y border en el width/height total */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-input:focus,
@@ -124,12 +138,12 @@
 }
 
 .form-select {
-  appearance: none; /* Para personalizar la flecha */
+  appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right var(--input-padding-x) center;
   background-repeat: no-repeat;
   background-size: 1.25em 1.25em;
-  padding-right: calc(var(--input-padding-x) + 1.5em); /* Espacio para la flecha */
+  padding-right: calc(var(--input-padding-x) + 1.5em);
 }
 
 .form-input:disabled,
@@ -142,25 +156,11 @@
 /* --- Grid para el formulario --- */
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr; /* Por defecto una columna */
-  gap: 1.25rem;
+  grid-template-columns: 1fr; /* Una columna por defecto para móviles */
+  gap: 1rem; /* Espacio ajustado */
 }
 
-@media (min-width: 576px) { /* Para pantallas un poco más grandes */
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr); /* Dos columnas */
-  }
-  .form-grid.three-columns { /* Clase específica para tres columnas */
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 575px) { /* En pantallas muy pequeñas, forzar una columna para .three-columns */
-  .form-grid.three-columns {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* Se mantiene la clase .three-columns por si se usa, pero por defecto será 1 columna en móvil */
 
 /* --- Botones --- */
 .btn {
@@ -173,11 +173,12 @@
   user-select: none;
   background-color: transparent;
   border: 1px solid transparent;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
+  padding: 0.5rem 1rem; /* Padding ajustado */
+  font-size: 0.9rem; /* Tamaño de fuente ajustado */
   line-height: 1.5;
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  width: 100%; /* Botones ocupan todo el ancho en móviles por defecto */
 }
 
 .btn-primary {
@@ -205,17 +206,91 @@
 }
 
 .btn-secondary:hover {
-  background-color: #545b62; /* Un gris más oscuro */
+  background-color: #545b62;
   border-color: #545b62;
 }
 
 .btn-back {
-  margin-bottom: 1.5rem; /* Espacio debajo del botón de volver */
-  align-self: flex-start; /* Para que no ocupe todo el ancho si está en un flex container */
+  margin-bottom: 1rem; /* Espacio ajustado */
+  align-self: flex-start;
+  width: auto; /* Botón de volver no ocupa todo el ancho */
 }
 
 .form-actions {
   display: flex;
-  justify-content: flex-end; /* Alinear botón de submit a la derecha */
-  margin-top: 1rem; /* Espacio antes de los botones de acción */
+  flex-direction: column; /* Apilar botones en móviles */
+  gap: 0.75rem; /* Espacio entre botones apilados */
+  margin-top: 1rem;
+}
+
+.form-actions .btn {
+  width: 100%; /* Botones de acción ocupan todo el ancho */
+}
+
+
+/* ------------------------- */
+/* Media Queries */
+/* ------------------------- */
+
+/* Tablets pequeñas y móviles grandes (a partir de 576px) */
+@media (min-width: 576px) {
+  .report-form-container {
+    padding: 2rem 2.5rem; /* Restaurar padding original */
+  }
+
+  .report-form-title {
+    font-size: 1.75rem; /* Restaurar tamaño original */
+  }
+
+  .form-label {
+    font-size: 0.9rem; /* Restaurar tamaño original */
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr); /* Dos columnas para el grid */
+  }
+
+  /* Si se usa .three-columns, permitir tres columnas aquí */
+  .form-grid.three-columns {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .btn {
+    width: auto; /* Botones ya no ocupan todo el ancho por defecto */
+    font-size: 1rem; /* Restaurar tamaño original */
+    padding: 0.6rem 1.2rem; /* Restaurar padding original */
+  }
+
+  .form-actions {
+    flex-direction: row; /* Botones de acción en línea */
+    justify-content: flex-end; /* Alinear a la derecha */
+  }
+
+  .form-actions .btn {
+    width: auto; /* Botones de acción no ocupan todo el ancho */
+  }
+}
+
+/* Tablets y escritorios pequeños (a partir de 768px) */
+@media (min-width: 768px) {
+  .report-page-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  /* Si se usa .three-columns y quieres que siempre sean 3 a partir de aquí,
+     no necesitas más cambios específicos para .three-columns aquí si ya está en 576px.
+     Si quieres que .form-grid normal pase a 3 columnas aquí, lo añades:
+     .form-grid { grid-template-columns: repeat(3, 1fr); }
+  */
+}
+
+/* Escritorios medianos (a partir de 992px) */
+@media (min-width: 992px) {
+  /* Aquí podrías aumentar el max-width del .report-form-container si lo deseas,
+     o ajustar otros espaciados para pantallas más grandes. */
+  /* Por ejemplo:
+  .report-form-container {
+    max-width: 800px;
+  }
+  */
 }

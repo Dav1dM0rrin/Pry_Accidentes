@@ -6,23 +6,30 @@
   --light-gray-bg: #f8f9fa;
   --text-color-dark: #212529;
   --text-color-light: #ffffff;
+  --text-color-muted: #6c757d; /* Añadida para consistencia */
+  --danger-color: #dc3545; /* Añadida para consistencia */
   --border-color: #dee2e6;
   --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
   --card-border-radius: 0.5rem;
   --font-family-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --navbar-height: 3.5rem; 
-  --topbar-height: 4rem; 
+  /* Ajusta estas alturas si tu layout global es diferente o no las usas */
+  --navbar-height: 3.5rem;
+  --topbar-height: 4rem;
 }
 
 .detalle-page-container {
   font-family: var(--font-family-sans-serif);
   background-color: var(--light-gray-bg);
   min-height: 100vh;
-  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); /* Asumiendo barras de nav globales */
+  /* padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); */ /* Ver nota en ReportarAccidente.css */
+  padding-top: 1.5rem; /* Padding superior base */
   padding-bottom: 2rem;
+  padding-left: 1rem; /* Padding lateral para móviles */
+  padding-right: 1rem; /* Padding lateral para móviles */
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Alinear arriba para scroll */
+  align-items: flex-start;
+  box-sizing: border-box;
 }
 
 .detalle-card {
@@ -30,36 +37,39 @@
   border-radius: var(--card-border-radius);
   box-shadow: var(--card-shadow);
   width: 100%;
-  max-width: 800px; /* Ancho máximo para la tarjeta de detalles */
-  margin: 1rem;
-  padding: 2rem 2.5rem;
+  max-width: 800px;
+  margin: 1rem 0; /* Margen vertical, sin margen lateral */
+  padding: 1.5rem; /* Padding reducido para móviles */
+  box-sizing: border-box;
 }
 
 .detalle-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  flex-direction: column; /* Apilar en móviles */
+  align-items: flex-start; /* Alinear a la izquierda */
+  gap: 1rem; /* Espacio entre título y botón en móviles */
+  margin-bottom: 1.5rem; /* Margen ajustado */
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .detalle-title {
-  font-size: 1.8rem;
+  font-size: 1.5rem; /* Tamaño ajustado para móviles */
   font-weight: 600;
   color: var(--primary-color);
   margin: 0;
 }
 
-.btn-back-detalle { /* Estilo específico para el botón de volver en esta página */
+.btn-back-detalle {
   padding: 0.5rem 1rem;
-  margin-left: 1rem;
   font-size: 0.9rem;
+  /* margin-left: 1rem; Eliminado para que ocupe el ancho si es necesario */
   margin-top: 0;
+  width: 100%; /* Botón ocupa todo el ancho en móviles */
 }
 
 .detalle-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem; /* Margen ajustado */
 }
 
 .detalle-section:last-child {
@@ -67,37 +77,38 @@
 }
 
 .detalle-section-title {
-  font-size: 1.3rem;
+  font-size: 1.15rem; /* Tamaño ajustado */
   font-weight: 500;
   color: var(--text-color-dark);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem; /* Margen ajustado */
   padding-bottom: 0.5rem;
   border-bottom: 1px dashed var(--border-color);
 }
 
 .detalle-item {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column; /* Apilar label y value en móviles */
   margin-bottom: 0.75rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem; /* Tamaño de fuente base para móviles */
   line-height: 1.5;
 }
 
 .detalle-label {
   font-weight: 600;
-  color: #495057; /* Un gris un poco más oscuro para las etiquetas */
-  margin-right: 0.5rem;
-  min-width: 180px; /* Ancho mínimo para etiquetas, ayuda a alinear */
+  color: #495057;
+  margin-right: 0; /* Sin margen a la derecha cuando está apilado */
+  margin-bottom: 0.25rem; /* Espacio entre label y value */
+  min-width: auto; /* Ancho automático */
   flex-shrink: 0;
 }
 
 .detalle-value {
   color: var(--text-color-dark);
-  word-break: break-word; /* Para textos largos */
+  word-break: break-word;
 }
 
 .detalle-value.muted {
-  color: #868e96; /* Gris más claro para "No disponible" */
+  color: #868e96;
   font-style: italic;
 }
 
@@ -117,14 +128,15 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 300px; /* Ocupar algo de espacio */
-  padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem);
+  min-height: 250px; /* Altura reducida */
+  /* padding-top: calc(var(--topbar-height) + var(--navbar-height) + 1.5rem); */ /* Ajustar si es necesario */
+  padding-top: 1.5rem;
 }
 
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
-  width: 36px;
-  height: 36px;
+  width: 32px; /* Tamaño reducido */
+  height: 32px; /* Tamaño reducido */
   border-radius: 50%;
   border-left-color: var(--primary-color);
   animation: spin 1s ease infinite;
@@ -132,32 +144,33 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .loading-container p {
-  font-size: 1.1rem;
+  font-size: 1rem; /* Tamaño ajustado */
   color: var(--text-color-muted);
 }
 
-.detalle-page-container.error-page {
+.detalle-page-container.error-page { /* Contenedor para página de error */
   text-align: center;
-  padding-top: 5rem;
+  padding-top: 3rem; /* Padding ajustado */
+  width: 100%;
 }
 
-.error-message {
-  color: var(--danger-color, #dc3545); /* Definir --danger-color si no está */
-  font-size: 1.2rem;
+.error-message-detalle { /* Clase específica para mensaje de error en esta página */
+  color: var(--danger-color);
+  font-size: 1.1rem; /* Tamaño ajustado */
   margin-bottom: 1.5rem;
+  background-color: #f8d7da; /* Fondo para destacar el error */
+  border: 1px solid #f5c6cb;
+  padding: 1rem;
+  border-radius: var(--card-border-radius);
+  display: inline-block; /* Para que no ocupe todo el ancho si no es necesario */
 }
 
-/* Reutilizar clases de botones si ya están definidas globalmente o en inicio.css */
-/* Si no, definirlas aquí: */
+/* Clases de Botones Genéricas (revisar si ya existen globalmente) */
 .btn {
   display: inline-block;
   font-weight: 500;
@@ -167,8 +180,8 @@
   user-select: none;
   background-color: transparent;
   border: 1px solid transparent;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
+  padding: 0.5rem 1rem; /* Padding base para móviles */
+  font-size: 0.9rem; /* Fuente base para móviles */
   line-height: 1.5;
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -190,6 +203,79 @@
   border-color: var(--secondary-color);
 }
 .btn-secondary:hover {
-  background-color: #545b62; 
+  background-color: #545b62;
   border-color: #545b62;
+}
+
+/* ------------------------- */
+/* Media Queries */
+/* ------------------------- */
+
+/* Tablets pequeñas y móviles grandes (a partir de 576px) */
+@media (min-width: 576px) {
+  .detalle-card {
+    padding: 2rem 2.5rem; /* Restaurar padding original */
+  }
+
+  .detalle-header {
+    flex-direction: row; /* Título y botón en línea */
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem; /* Restaurar gap si es necesario */
+    margin-bottom: 2rem; /* Restaurar margen */
+  }
+
+  .detalle-title {
+    font-size: 1.8rem; /* Restaurar tamaño original */
+  }
+
+  .btn-back-detalle {
+    width: auto; /* Botón ya no ocupa todo el ancho */
+    margin-left: 1rem; /* Restaurar margen izquierdo */
+  }
+
+  .detalle-section-title {
+    font-size: 1.3rem; /* Restaurar tamaño */
+  }
+
+  .detalle-item {
+    flex-direction: row; /* Label y value en línea */
+    flex-wrap: wrap; /* Permitir que el value se ajuste si es largo */
+    font-size: 0.95rem; /* Restaurar tamaño de fuente */
+  }
+
+  .detalle-label {
+    margin-right: 0.5rem; /* Restaurar margen a la derecha */
+    margin-bottom: 0; /* Sin margen inferior cuando está en línea */
+    min-width: 180px; /* Restaurar ancho mínimo */
+  }
+
+  .loading-container p {
+    font-size: 1.1rem; /* Restaurar tamaño */
+  }
+
+  .error-message-detalle {
+    font-size: 1.2rem; /* Restaurar tamaño */
+  }
+
+  .btn {
+    font-size: 1rem; /* Restaurar tamaño de fuente de botón */
+    padding: 0.6rem 1.2rem; /* Restaurar padding de botón */
+  }
+}
+
+/* Tablets y escritorios pequeños (a partir de 768px) */
+@media (min-width: 768px) {
+  .detalle-page-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  /* Ajustes adicionales si son necesarios para este breakpoint */
+}
+
+/* Escritorios medianos (a partir de 992px) */
+@media (min-width: 992px) {
+  .detalle-card {
+    max-width: 960px; /* Permitir que la tarjeta sea un poco más ancha */
+  }
 }
